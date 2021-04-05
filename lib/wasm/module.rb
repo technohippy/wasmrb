@@ -1,9 +1,17 @@
-module WASM
+module WebAssembly
   class Module
     attr_accessor :magic, :version, :sections
 
     def initialize
       @sections = []
+    end
+
+    def to_hash
+      {
+        :magic => @magic,
+        :version => @version,
+        :sections => @sections.map {|e| e.to_hash}
+      }
     end
   end
 
@@ -16,6 +24,13 @@ module WASM
         subclass = k if k.superclass == self and k::ID == id
       end
       subclass
+    end
+
+    def to_hash
+      {
+        :id => @id,
+        :size => @size
+      }
     end
   end
 

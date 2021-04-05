@@ -733,3 +733,23 @@ mod = read_module data
 
 require "pp"
 pp mod
+
+require_relative "./wasm/wasmloader.rb"
+loader = WebAssembly::WASMLoader.new "spec/data/echo.wasm"
+m = loader.load
+p m.to_hash
+=begin
+loader = WebAssembly::WASMLoader.new
+#loader = WebAssembly::WATLoader.new
+mod = loader.load "spec/data/echo.wasm"
+
+import_objects = {
+  :rb => {
+    :log => lambda {|msg| p msg}
+  }
+}
+inst = mod.instantiate import_objects
+inst.exports.run_something "wasm"
+
+p mod.to_hash
+=end
