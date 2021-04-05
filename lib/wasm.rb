@@ -1,4 +1,6 @@
 TAG_FUNCTYPE = 0x60
+BLOCK_END = 0x0b
+THEN_END = 0x05
 
 SECTION_NAMES = {
   0 => :custom,
@@ -41,6 +43,109 @@ EXPORT_TYPES = {
   0x02 => :mem,
   0x03 => :global
 }
+
+INST_UNREACHABLE = 0x00
+INST_NOP = 0x01
+INST_BLOCK = 0x02
+INST_LOOP = 0x03
+INST_IF = 0x04
+INST_BR = 0x0c
+INST_BR_IF = 0x0d
+INST_BR_TABLE = 0x0e
+INST_RETURN = 0x0f
+INST_CALL = 0x10
+INST_CALL_INDIRECT = 0x11
+
+INST_REF_NULL = 0xd0
+INST_REF_IS_NULL = 0xd1
+INST_REF_FUNC = 0xd2
+
+INST_PARAM_DROP = 0x1a
+INST_PARAM_SELECT = 0x1b
+INST_PARAM_SELECT_VALTYPE = 0x1c
+
+INST_LOCAL_GET = 0x20
+INST_LOCAL_SET = 0x21
+INST_LOCAL_TEE = 0x22
+INST_GLOBAL_GET = 0x23
+INST_GLOBAL_SET = 0x24
+
+INST_TABLE_GET = 0x25
+INST_TABLE_SET = 0x26
+
+# memory
+INST_I32_LOAD = 0x28
+INST_I64_LOAD = 0x29
+INST_F32_LOAD = 0x2a
+INST_F64_LOAD = 0x2b
+INST_I32_LOAD8S = 0x2c
+INST_I32_LOAD8U = 0x2d
+INST_I32_LOAD16S = 0x2e
+INST_I32_LOAD16U = 0x2f
+INST_I64_LOAD8S = 0x30
+INST_I64_LOAD8U = 0x31
+INST_I64_LOAD16S = 0x32
+INST_I64_LOAD16U = 0x33
+INST_I64_LOAD32S = 0x34
+INST_I64_LOAD32U = 0x35
+
+INST_I32_STORE = 0x36
+INST_I64_STORE = 0x37
+INST_F32_STORE = 0x38
+INST_F64_STORE = 0x39
+INST_I32_STORE8 = 0x3a
+INST_I32_STORE16 = 0x3b
+INST_I64_STORE8 = 0x3c
+INST_I64_STORE16 = 0x3d
+INST_I64_STORE32 = 0x3e
+
+INST_MEMORY_SIZE = 0x3f
+INST_MEMORY_GROW = 0x40
+
+# numeric
+INST_I32_CONST = 0x41
+INST_I32_EQZ = 0x45
+INST_I32_EQ = 0x46
+INST_I32_NE = 0x47
+INST_I32_LTS = 0x48
+INST_I32_LTU = 0x49
+INST_I32_GTS = 0x4a
+INST_I32_GTU = 0x4b
+INST_I32_LES = 0x4c
+INST_I32_LEU = 0x4d
+INST_I32_GES = 0x4e
+INST_I32_GEU = 0x4f
+
+INST_I32_CLZ = 0x67
+INST_I32_CTZ = 0x68
+INST_I32_POPCNT = 0x69
+INST_I32_ADD = 0x6a
+INST_I32_SUB = 0x6b
+INST_I32_MUL = 0x6c
+INST_I32_DIVS = 0x6d
+INST_I32_DIVU = 0x6e
+INST_I32_REMS = 0x6f
+INST_I32_REMU = 0x70
+INST_I32_AND = 0x71
+INST_I32_OR = 0x72
+INST_I32_XOR = 0x73
+INST_I32_SHL = 0x74
+INST_I32_SHRS = 0x75
+INST_I32_SHRU = 0x76
+INST_I32_ROTL = 0x77
+INST_I32_ROTR = 0x78
+
+INST_OTHERS = 0xfc
+INST_SUB_MEMORY_INIT = 8
+INST_SUB_DATA_DROP = 9
+INST_SUB_MEMORY_COPY = 10
+INST_SUB_MEMORY_FILLT = 11
+INST_SUB_TABLE_INIT = 12
+INST_SUB_ELEM_DROP = 13
+INST_SUB_TABLE_COPY = 14
+INST_SUB_TABLE_GROW = 15
+INST_SUB_TABLE_SIZE = 16
+INST_SUB_TABLE_FILL = 17
 
 # common
 
@@ -311,10 +416,6 @@ def read_global data
   expressions = read_expressions data
 end
 
-def read_expressions data
-  raise :TODO
-end
-
 def read_export_section data 
   exports = read_vec data do |dt|
     read_export dt
@@ -355,7 +456,256 @@ def read_element_section data
 end
 
 def read_code_section data 
-  :code
+  codes = read_vec data do |dt|
+    read_code dt
+  end
+  {
+    :code => codes
+  }
+end
+
+def read_code data
+  size = read_num data
+  func_data = data.shift size
+  locals = read_vec func_data do |dt|
+    read_locals dt
+  end
+  expressions = read_expressions func_data
+  {
+    :locals => locals,
+    :expr => expressions
+  }
+end
+
+def read_locals data
+  count = read_num data
+  valtype = read_valtype dt
+  {
+    valtype => count
+  }
+end
+
+def read_expressions data
+  _, instructions = read_instructions data do |t|
+    t == BLOCK_END
+  end
+  instructions
+end
+
+def read_instructions data, &end_cond
+  instructions = []
+  loop do
+    break if end_cond.call(data[0])
+    instructions.push read_instruction(data)
+  end
+  end_tag = data.shift # remove end_tag
+  [end_tag, instructions]
+end
+
+def read_instruction data
+  tag = data.shift
+  case tag
+  when INST_BLOCK
+    read_inst_block data
+  when INST_LOOP
+    read_inst_loop data
+  when INST_IF
+    read_inst_if data
+  when INST_BR
+    read_inst_br data
+  when INST_BR_IF
+    read_inst_br_if data
+  when INST_CALL
+    read_inst_call data
+  when INST_LOCAL_GET
+    read_inst_local_get data
+  when INST_LOCAL_SET
+    read_inst_local_set data
+  when INST_GLOBAL_GET
+    read_inst_global_get data
+  when INST_GLOBAL_SET
+    read_inst_global_set data
+  when INST_I32_LOAD
+    read_inst_i32_load data
+  when INST_I32_STORE
+    read_inst_i32_store data
+  when INST_I32_CONST
+    read_inst_i32_const data
+  when INST_I32_EQZ
+    read_inst_i32_eqz data
+  when INST_I32_EQ
+    read_inst_i32_eq data
+  when INST_I32_NE
+    read_inst_i32_ne data
+  when INST_I32_ADD
+    read_inst_i32_add data
+  when INST_I32_SUB
+    read_inst_i32_sub data
+  when INST_I32_MUL
+    read_inst_i32_mul data
+  else
+    #raise "unknown tag: #{tag.to_s(16)}"
+  end
+end
+
+def read_inst_block data
+  bt = read_blocktype data
+  exprs = read_expressions data
+  {
+    :block => {
+      :bt => bt,
+      :in => exprs
+    }
+  }
+end
+
+def read_blocktype data
+  return data.shift if data[0] == 0x40
+  valtype = read_valtype data
+  return valtype if valtype
+  read_s33
+end
+
+def read_s33 data
+  raise "not yet implemented"
+end
+
+def read_inst_loop data
+  bt = read_blocktype data
+  exprs = read_expressions data
+  {
+    :loop => {
+      :bt => bt,
+      :in => exprs
+    }
+  }
+end
+
+def read_inst_if data
+  bt = read_blocktype data
+  end_tag, then_exprs = read_instructions data do |t|
+    t == BLOCK_END || t == THEN_END
+  end
+  if end_tag == BLOCK_END
+    {
+      :if => {
+        :bt => bt,
+        :then => then_exprs
+      }
+    }
+  else
+    else_exprs = read_expressions data
+    {
+      :if => {
+        :bt => bt,
+        :then => then_exprs,
+        :else => else_exprs
+      }
+    }
+  end
+end
+
+def read_inst_br data
+  labelidx = read_num data
+  {
+    :br => labelidx
+  }
+end
+
+def read_inst_br_if data
+  labelidx = read_num data
+  {
+    :br_if => labelidx
+  }
+end
+
+def read_inst_call data
+  funcidx = read_num data
+  {
+    :call => funcidx
+  }
+end
+
+def read_inst_local_get data
+  val = read_num data
+  {
+    :"local.get" => val
+  }
+end
+
+def read_inst_local_set data
+  val = read_num data
+  {
+    :"local.set" => val
+  }
+end
+
+def read_inst_global_get data
+  val = read_num data
+  {
+    :"global.get" => val
+  }
+end
+
+def read_inst_global_set data
+  val = read_num data
+  {
+    :"global.set" => val
+  }
+end
+
+def read_inst_i32_load data
+  val = read_memarg data
+  {
+    :"i32.load" => val
+  }
+end
+
+def read_memarg data
+  align = read_num data
+  offset = read_num data
+  {
+    :align => align,
+    :offset => offset
+  }
+end
+
+def read_inst_i32_store data
+  val = read_memarg data
+  {
+    :"i32.store" => val
+  }
+end
+
+def read_inst_i32_const data
+  val = read_num data
+  {
+    :"i32.const" => val
+  }
+end
+
+def read_inst_i32_eqz data
+  :"i32.eqz"
+end
+
+def read_inst_i32_eq data
+  :"i32.eq"
+end
+
+def read_inst_i32_ne data
+  :"i32.ne"
+end
+
+def read_inst_i32_add data
+  :"i32.add"
+end
+
+def read_inst_i32_sub data
+  :"i32.sub"
+end
+
+def read_inst_i32_mul data
+  :"i32.mul"
 end
 
 def read_data_section data 
@@ -367,8 +717,9 @@ def read_datacount_section data
 end
 
 data = []
-#File.open("fizzbuzz.wasm") do |f|
-File.open("hw.wasm") do |f|
+File.open("spec/data/echo.wasm") do |f|
+#File.open("spec/data/fizzbuzz.wasm") do |f|
+#File.open("spec/data/hw.wasm") do |f|
   begin
     loop do
       data.push f.readbyte
