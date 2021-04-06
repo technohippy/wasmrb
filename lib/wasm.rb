@@ -147,6 +147,7 @@ INST_SUB_TABLE_GROW = 15
 INST_SUB_TABLE_SIZE = 16
 INST_SUB_TABLE_FILL = 17
 
+=begin
 # common
 
 def read_leb128 data
@@ -733,23 +734,23 @@ mod = read_module data
 
 require "pp"
 pp mod
+=end
 
+require "pp"
 require_relative "./wasm/wasmloader.rb"
-loader = WebAssembly::WASMLoader.new "spec/data/echo.wasm"
-m = loader.load
-p m.to_hash
-=begin
-loader = WebAssembly::WASMLoader.new
-#loader = WebAssembly::WATLoader.new
-mod = loader.load "spec/data/echo.wasm"
 
+loader = WebAssembly::WASMLoader.new "spec/data/hw.wasm"
+#loader = WebAssembly::WASMLoader.new "spec/data/change.wasm"
+mod = loader.load
+pp mod.to_hash
+
+=begin
 import_objects = {
   :rb => {
     :log => lambda {|msg| p msg}
   }
 }
-inst = mod.instantiate import_objects
+inst = mod.instantiate import_objects # 関数とかの参照を実体と差し替える
 inst.exports.run_something "wasm"
-
-p mod.to_hash
+inst.run_something "wasm"
 =end
