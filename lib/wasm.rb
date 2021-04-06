@@ -737,10 +737,10 @@ pp mod
 =end
 
 require "pp"
-require_relative "./wasm/wasmloader.rb"
+require_relative "./wasm/loader.rb"
 
-loader = WebAssembly::WASMLoader.new "spec/data/hw.wasm"
-#loader = WebAssembly::WASMLoader.new "spec/data/change.wasm"
+loader = WebAssembly::Loader.new "spec/data/hw.wasm"
+#loader = WebAssembly::Loader.new "spec/data/change.wasm"
 mod = loader.load
 pp mod.to_hash
 

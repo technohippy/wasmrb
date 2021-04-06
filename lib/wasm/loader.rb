@@ -93,7 +93,7 @@ module WebAssembly
 		end
 	end
 
-	class WASMLoader
+	class Loader
 		def initialize filepath
 			@buffer = WASMBuffer.new
 			File.open(filepath) do |f|
