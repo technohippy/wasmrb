@@ -1,13 +1,28 @@
-require_relative "./module.rb"
-
 module WebAssembly
 	class WASMBuffer
 		attr_reader :cursor, :data
+
+		def self.load filepath
+			buffer = self.new
+			buffer.load filepath
+			buffer
+		end
 
 		def initialize
 			@cursor = 0
 			@sizes = [0]
 			@data = []
+		end
+
+		def load filepath
+			File.open(filepath) do |f|
+				begin
+					loop do
+						self.add f.readbyte
+					end
+				rescue => _
+				end
+			end
 		end
 
 		def add byte
@@ -93,25 +108,38 @@ module WebAssembly
 		end
 	end
 
-	class Loader
-		def initialize filepath
-			@buffer = WASMBuffer.new
-			File.open(filepath) do |f|
-				begin
-					loop do
-						@buffer.add f.readbyte
-					end
-				rescue => _
-				end
-			end
-		end
+	class WASMLoader
+		BLOCK_END = 0x0b
+		THEN_END = 0x05
+		NUM_TYPES = {
+			0x7c => :f64,
+			0x7d => :f32,
+			0x7e => :i64,
+			0x7f => :i32,
+		}
+		REF_TYPES = {
+			0x70 => :funcref,
+			0x6f => :externref,
+		}
+		IMPORT_TYPES = {
+			0x00 => :type,
+			0x01 => :table,
+			0x02 => :mem,
+			0x03 => :global
+		}
+		EXPORT_TYPES = {
+			0x00 => :func,
+			0x01 => :table,
+			0x02 => :mem,
+			0x03 => :global
+		}
 
-		def load
-			mod = Module.new
+		def load mod, filepath
+			@buffer = WASMBuffer.load filepath
+
 			mod.magic = read_magic
 			mod.version = read_version
 			mod.sections = read_sections
-			mod
 		end
 
 		private
