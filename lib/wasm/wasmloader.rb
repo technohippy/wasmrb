@@ -52,6 +52,8 @@ module WebAssembly
 		end
 
 		def read length=1
+			puts "#{@cursor}: #{@data[@cursor].to_s(16)}" if $DEBUG
+
 			@cursor += length
 			if length == 1
 				@data[@cursor-length]
@@ -172,6 +174,7 @@ module WebAssembly
 			name = Section.name_by_id(id)
 			@buffer.viewport size do
 				method_name = "read_#{name}_section"
+				p "SECTION: #{method_name}" if $DEBUG
 				section = send method_name
 				section.id = id
 				section.size = size
@@ -456,6 +459,7 @@ module WebAssembly
 			tag = @buffer.read_byte
 			name = Instruction.name_by_tag tag
 			method_name = "read_inst_#{name}"
+			puts "INSTRUCTION: #{method_name}" if $DEBUG
 			send method_name
 		end
 

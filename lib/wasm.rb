@@ -8,7 +8,7 @@ filepath = %w(
   spec/data/change.wasm
   spec/data/understanding-text-format/wasm-table.wasm
   spec/data/understanding-text-format/logger2.wasm
-)[2]
+)[3]
 loader = WebAssembly::WASMLoader.new
 mod = loader.load filepath
 pp mod.to_hash
