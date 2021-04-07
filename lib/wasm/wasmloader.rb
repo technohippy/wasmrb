@@ -1,3 +1,5 @@
+require_relative "./module.rb"
+
 module WebAssembly
 	class WASMBuffer
 		attr_reader :cursor, :data
@@ -134,12 +136,14 @@ module WebAssembly
 			0x03 => :global
 		}
 
-		def load mod, filepath
+		def load filepath
 			@buffer = WASMBuffer.load filepath
 
+			mod = Module.new
 			mod.magic = read_magic
 			mod.version = read_version
 			mod.sections = read_sections
+			mod
 		end
 
 		private
@@ -301,8 +305,8 @@ module WebAssembly
 
 		def read_tabletype
 			tabletype = TableType.new
-			tabletype.reftype = REF_TYPES[read_num data]
-			tabletype.limits = @buffer.read_limits data
+			tabletype.reftype = REF_TYPES[@buffer.read_num]
+			tabletype.limits = @buffer.read_limits
 			tabletype
 		end
 
@@ -368,7 +372,40 @@ module WebAssembly
 		end
 
 		def read_element_section
-			raise :TODO
+			section = ElementSection.new
+			@buffer.read_vec do
+				section.add_element read_element
+			end
+			section
+		end
+
+		def read_element
+			element = Element.new
+			tag = @buffer.read_byte
+			case tag
+			when 0b000
+				element.expression = read_expressions
+				@buffer.read_vec do
+					element.add_funcidx @buffer.read_num
+				end
+			when 0b001
+				raise "not yet implemented: #{tag}"
+			when 0b010
+				raise "not yet implemented: #{tag}"
+			when 0b011
+				raise "not yet implemented: #{tag}"
+			when 0b100
+				raise "not yet implemented: #{tag}"
+			when 0b101
+				raise "not yet implemented: #{tag}"
+			when 0b110
+				raise "not yet implemented: #{tag}"
+			when 0b111
+				raise "not yet implemented: #{tag}"
+			else
+				raise "invalid element: #{tag}"
+			end
+			element
 		end
 
 		def read_code_section
@@ -438,7 +475,7 @@ module WebAssembly
 			read_s33
 		end
 
-		def read_s33 data
+		def read_s33
 			raise "not yet implemented"
 		end
 
@@ -449,28 +486,19 @@ module WebAssembly
 			inst
 		end
 
-		def read_inst_if data
-			bt = read_blocktype data
-			end_tag, then_exprs = read_instructions data do |t|
+		def read_inst_if
+			inst = IfInstruction.new
+			inst.blocktype = read_blocktype
+
+			end_tag, then_exprs = read_instructions do |t|
 				t == BLOCK_END || t == THEN_END
 			end
-			if end_tag == BLOCK_END
-				{
-					:if => {
-						:bt => bt,
-						:then => then_exprs
-					}
-				}
-			else
-				else_exprs = read_expressions data
-				{
-					:if => {
-						:bt => bt,
-						:then => then_exprs,
-						:else => else_exprs
-					}
-				}
+			inst.then_instructions = then_exprs
+			if end_tag == THEN_END
+				_, else_exprs = read_instructions
+				inst.else_instructions = else_exprs
 			end
+			inst
 		end
 
 		def read_inst_br
@@ -491,18 +519,29 @@ module WebAssembly
 			inst
 		end
 
-		def read_inst_local_get data
-			val = read_num data
-			{
-				:"local.get" => val
-			}
+		def read_inst_call_indirect
+			inst = CallIndirectInstruction.new
+			inst.typeidx = @buffer.read_num
+			inst.tableidx = @buffer.read_num
+			inst
 		end
 
-		def read_inst_local_set data
-			val = read_num data
-			{
-				:"local.set" => val
-			}
+		def read_inst_local_get
+			inst = LocalGetInstruction.new
+			inst.index = @buffer.read_num
+			inst
+		end
+
+		def read_inst_local_set
+			inst = LocalSetInstruction.new
+			inst.index = @buffer.read_num
+			inst
+		end
+
+		def read_inst_local_tee
+			inst = LocalTeeInstruction.new
+			inst.index = @buffer.read_num
+			inst
 		end
 
 		def read_inst_global_get
@@ -546,13 +585,20 @@ module WebAssembly
 			I32EqzInstruction.new
 		end
 
-		def read_inst_i32_eq data
+		def read_inst_i32_eq
 			I32EqInstruction.new
 		end
 
-		def read_inst_i32_ne data
+		def read_inst_i32_ne
 			I32NeInstruction.new
 		end
+
+
+		def read_inst_i32_gts
+			I32GtsInstruction.new
+		end
+
+
 
 		def read_inst_i32_add
 			I32AddInstruction.new
@@ -562,21 +608,59 @@ module WebAssembly
 			I32SubInstruction.new
 		end
 
-		def read_inst_i32_mul data
+		def read_inst_i32_mul
 			I32MulInstruction.new
 		end
 
 
 
 
+		def read_inst_i32_and
+			I32AndInstruction.new
+		end
 
 
-		def read_data_section data 
-			:data
+
+
+
+
+		def read_data_section
+			section = DataSection.new
+			@buffer.read_vec do
+				section.add_data read_data
+			end
+			section
+		end
+
+		def read_data
+			data = Data.new
+			tag = @buffer.read_byte
+			case tag
+			when 0x00
+				data.expressions = read_expressions
+				@buffer.read_vec do
+					data.add_byte @buffer.read_byte
+				end
+			when 0x01
+				@buffer.read_vec do
+					data.add_byte @buffer.read_byte
+				end
+			when 0x02
+				data.memidx = read_num
+				data.expressions = read_expressions
+				@buffer.read_vec do
+					data.add_byte @buffer.read_byte
+				end
+			else
+				raise "invalid data type: #{tag}"
+			end
+			data
 		end
 
 		def read_datacount_section data 
-			:datacount
+			section = DataCountSection.new
+			section.count = @buffer.read_num
+			section
 		end
 	end
 end

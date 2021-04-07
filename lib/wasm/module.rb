@@ -1,3 +1,5 @@
+require_relative "./instance.rb"
+
 module WebAssembly
   class Module
     attr_accessor :magic, :version, :sections
@@ -14,6 +16,18 @@ module WebAssembly
     def version=(version)
       raise "invalid version: #{version}" unless version == [0x01, 0x00, 0x00, 0x00]
       @version = version
+    end
+
+    def section_by_name name
+      @sections.find do |sec|
+        sec.class.name.split("::").last.sub(/Section$/, "").downcase == name
+      end
+    end
+
+    def instantiate import_object=nil
+      inst = Instance.new self, import_object
+      inst.compile
+      inst
     end
 
     def to_hash
@@ -126,7 +140,7 @@ module WebAssembly
 
     def to_hash
       super.to_hash.merge({
-        :types => @tabletypes
+        :types => @tabletypes.map {|tt| tt.to_hash}
       })
     end
   end
@@ -205,6 +219,20 @@ module WebAssembly
 
   class ElementSection < Section
     ID = 9
+
+    def initialize
+      @elements = []
+    end
+
+    def add_element element
+      @elements.push element
+    end
+
+    def to_hash
+      super.to_hash.merge({
+        :elements => @elements.map {|e| e.to_hash}
+      })
+    end
   end
 
   class CodeSection < Section
@@ -227,10 +255,34 @@ module WebAssembly
 
   class DataSection < Section
     ID = 11
+
+    attr_accessor :data
+
+    def initialize
+      @data = []
+    end
+
+    def add_data data
+      @data.push data
+    end
+
+    def to_hash
+      super.to_hash.merge({
+        :data => @data.map {|d| d.to_hash}
+      })
+    end
   end
 
   class DataCountSection < Section
     ID = 12
+
+    attr_accessor :count
+
+    def to_hash
+      super.to_hash.merge({
+        :count => @count
+      })
+    end
   end
 
   class Limit
@@ -335,6 +387,13 @@ module WebAssembly
 
   class TableType
     attr_accessor :reftype, :limits
+
+    def to_hash
+      {
+        :reftype => @reftype,
+        :limits => @limits.to_hash,
+      }
+    end
   end
 
   class Global
@@ -439,6 +498,24 @@ module WebAssembly
     end
   end
 
+  class Element
+    attr_accessor :expression
+
+    def initialize
+      @funcidxs = []
+    end
+
+    def add_funcidx funcidx
+      @funcidxs.push funcidx
+    end
+
+    def to_hash
+      {
+        :funcidx => @funcidxs
+      }
+    end
+  end
+
   class Code
     attr_accessor :locals, :expressions
 
@@ -513,6 +590,17 @@ module WebAssembly
 
   class IfInstruction < Instruction
     TAG = 0x04
+
+    attr_accessor :blocktype, :then_instructions, :else_instructions
+
+    def to_hash
+      h = {
+        :name => "if",
+        :then => @then_instructions.map {|i| i.to_hash},
+      }
+      h[:else] = @else_instructions.map {|i| i.to_hash} if @else_instructions
+      h
+    end
   end
 
   class BrInstruction < Instruction
@@ -562,6 +650,14 @@ module WebAssembly
     TAG = 0x11
 
     attr_accessor :typeidx, :tableidx
+
+    def to_hash
+      {
+        :name => "call_indirect",
+        :typeidx => @typeidx,
+        :tableidx => @tableidx
+      }
+    end
   end
 
   class RefNullInstruction < Instruction
@@ -590,14 +686,41 @@ module WebAssembly
 
   class LocalGetInstruction < Instruction
     TAG = 0x20
+
+    attr_accessor :index
+
+    def to_hash
+      {
+        :name => "local.get",
+        :index => @index
+      }
+    end
   end
 
   class LocalSetInstruction < Instruction
     TAG = 0x21
+
+    attr_accessor :index
+
+    def to_hash
+      {
+        :name => "local.set",
+        :index => @index
+      }
+    end
   end
 
   class LocalTeeInstruction < Instruction
     TAG = 0x22
+
+    attr_accessor :index
+
+    def to_hash
+      {
+        :name => "local.tee",
+        :index => @index
+      }
+    end
   end
 
   class GlobalGetInstruction < Instruction
@@ -759,6 +882,12 @@ module WebAssembly
 
   class I32GtsInstruction < Instruction
     TAG = 0x4a
+
+    def to_hash
+      {
+        :name => "i32.gts"
+      }
+    end
   end
 
   class I32GtuInstruction < Instruction
@@ -853,6 +982,12 @@ module WebAssembly
 
   class I32AndInstruction < Instruction
     TAG = 0x71
+
+    def to_hash
+      {
+        :name => "i32.and"
+      }
+    end
   end
 
   class I32OrInstruction < Instruction
@@ -891,6 +1026,27 @@ module WebAssembly
         :align => @arign,
         :offset => @offset
       }
+    end
+  end
+
+  class Data
+    attr_accessor :memidx, :expressions, :bytes
+
+    def initialize
+      @bytes = []
+    end
+
+    def add_byte byte
+      @bytes.push byte
+    end
+
+    def to_hash
+      h = {
+        :bytes => @bytes
+      }
+      h[:expressions] = @expressions.map {|e| e.to_hash} if @expressions
+      h[:memidx] = @memidx if @memidx
+      h
     end
   end
 end

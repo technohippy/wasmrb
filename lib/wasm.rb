@@ -1,10 +1,16 @@
 require "pp"
-require_relative "./wasm/module.rb"
 require_relative "./wasm/wasmloader.rb"
 
-mod = WebAssembly::Module.new
+filepath = %w(
+  spec/data/hw.wasm
+  spec/data/echo.wasm
+  spec/data/fizzbuzz.wasm
+  spec/data/change.wasm
+  spec/data/understanding-text-format/wasm-table.wasm
+  spec/data/understanding-text-format/logger2.wasm
+)[5]
 loader = WebAssembly::WASMLoader.new
-loader.load mod, "spec/data/hw.wasm"
+mod = loader.load filepath
 pp mod.to_hash
 
 =begin
