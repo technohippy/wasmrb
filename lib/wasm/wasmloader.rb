@@ -497,33 +497,87 @@ module WebAssembly
 			end
 			inst.then_instructions = then_exprs
 			if end_tag == THEN_END
-				_, else_exprs = read_instructions
+				_, else_exprs = read_instructions do |t|
+					t == BLOCK_END
+				end
 				inst.else_instructions = else_exprs
 			end
 			inst
 		end
 
+		def read_inst_return
+			ReturnInstruction.new
+		end
+
 		{
+			"unreachable" => [],
+			"nop" => [],
 			"br" => ["labelidx"],
 			"br_if" => ["labelidx"],
 			"call" => ["funcidx"],
 			"call_indirect" => ["typeidx", "tableidx"],
+			"ref_null" => ["reftype"],
+			"ref_is_null" => [],
+			"ref_func" => ["funcidx"],
+			"drop" => [],
+			"select" => [],
+			#"select_types" => [],
 			"local_get" => ["index"],
 			"local_set" => ["index"],
 			"local_tee" => ["index"],
 			"global_get" => ["index"],
 			"global_set" => ["index"],
+			"table_get" => ["tableidx"],
+			"table_set" => ["tableidx"],
+			"table_init" => ["elemidx", "tableidx"],
+			"elem_drop" => ["elemidx"],
+			"table_copy" => ["tableidx1", "tableidx2"],
+			"table_grow" => ["tableidx"],
+			"table_size" => ["tableidx"],
+			"table_fill" => ["tableidx"],
 			"i32_load" => {"memarg" => "read_memarg"},
+			"i32_load8s" => {"memarg" => "read_memarg"},
+			"i32_load8u" => {"memarg" => "read_memarg"},
+			"i32_load16s" => {"memarg" => "read_memarg"},
+			"i32_load16u" => {"memarg" => "read_memarg"},
 			"i32_store" => {"memarg" => "read_memarg"},
+			"i32_store8" => {"memarg" => "read_memarg"},
+			"i32_store16" => {"memarg" => "read_memarg"},
+			"memory_size" => [],
+			"memory_grow" => [],
+			"memory_init" => ["dataidx"],
+			"data_drop" => ["dataidx"],
+			"memory_copy" => [],
+			"memory_fill" => [],
 			"i32_const" => ["value"],
 			"i32_eqz" => [],
 			"i32_eq" => [],
 			"i32_ne" => [],
+			"i32_lts" => [],
+			"i32_ltu" => [],
 			"i32_gts" => [],
+			"i32_gtu" => [],
+			"i32_les" => [],
+			"i32_leu" => [],
+			"i32_ges" => [],
+			"i32_geu" => [],
+			"i32_clz" => [],
+			"i32_ctz" => [],
+			"i32_popcnt" => [],
 			"i32_add" => [],
 			"i32_sub" => [],
 			"i32_mul" => [],
+			"i32_divs" => [],
+			"i32_divu" => [],
+			"i32_rems" => [],
+			"i32_remu" => [],
 			"i32_and" => [],
+			"i32_or" => [],
+			"i32_shl" => [],
+			"i32_shrs" => [],
+			"i32_shru" => [],
+			"i32_rotl" => [],
+			"i32_rotr" => [],
 		}.each do |name, props|
 			define_method "read_inst_#{name}" do
 				classname = name.capitalize.gsub(/_([a-z])/) { $1.upcase }

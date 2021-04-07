@@ -556,21 +556,28 @@ module WebAssembly
 
   class UnreachableInstruction < Instruction
     TAG = 0x00
+
+    def to_hash
+      {
+        :name => "unreachable",
+      }
+    end
   end
 
   class NopInstruction < Instruction
     TAG = 0x01
+
+    def to_hash
+      {
+        :name => "nop",
+      }
+    end
   end
 
   class BlockInstruction < Instruction
     TAG = 0x02
 
     attr_accessor :blocktype, :instructions
-
-    def initialize
-      @blocktype = nil
-      @instructions = nil
-    end
 
     def to_hash
       {
@@ -639,8 +646,28 @@ module WebAssembly
     end
   end
 
-  class ReturnInstruction < Instruction
+  class BrTableInstruction < Instruction
     TAG = 0x0e
+
+    attr_accessor :labelidxs, :labelidx
+
+    def to_hash
+      {
+        :name => "br_table",
+        :labelidxs => @labelidxs,
+        :labelidx => @labelidx
+      }
+    end
+  end
+
+  class ReturnInstruction < Instruction
+    TAG = 0x0f
+
+    def to_hash
+      {
+        :name => "return",
+      }
+    end
   end
 
   class CallInstruction < Instruction
@@ -672,26 +699,71 @@ module WebAssembly
 
   class RefNullInstruction < Instruction
     TAG = 0xd0
+
+    attr_accessor :reftype
+
+    def to_hash
+      {
+        :name => "ref.null",
+        :reftype => @reftype
+      }
+    end
   end
 
   class RefIsNullInstruction < Instruction
     TAG = 0xd1
+
+    def to_hash
+      {
+        :name => "ref.is_null",
+      }
+    end
   end
 
   class RefFuncInstruction < Instruction
     TAG = 0xd2
+
+    attr_accessor :funcidx
+
+    def to_hash
+      {
+        :name => "ref.func",
+        :funcidx => @funcidx
+      }
+    end
   end
 
   class DropInstruction < Instruction
     TAG = 0x1a
+
+    def to_hash
+      {
+        :name => "drop",
+      }
+    end
   end
 
   class SelectInstruction < Instruction
     TAG = 0x1b
+
+    def to_hash
+      {
+        :name => "select",
+      }
+    end
   end
 
   class SelectTypesInstruction < Instruction
     TAG = 0x1c
+    
+    attr_accessor :valtypes
+
+    def to_hash
+      {
+        :name => "select t*",
+        :valtypes => @valtypes
+      }
+    end
   end
 
   class LocalGetInstruction < Instruction
@@ -761,18 +833,116 @@ module WebAssembly
 
   class TableGetInstruction < Instruction
     TAG = 0x25
+
+    attr_accessor :tableidx
+
+    def to_hash
+      {
+        :name => "table.get",
+        :tableidx => @tableidx
+      }
+    end
   end
 
   class TableSetInstruction < Instruction
     TAG = 0x26
+
+    attr_accessor :tableidx
+
+    def to_hash
+      {
+        :name => "table.set",
+        :tableidx => @tableidx
+      }
+    end
   end
 
   class TableInitInstruction < Instruction
     TAG = 0xFC
     SUBTAG = 12
+
+    attr_accessor :elemidx, :tableidx
+
+    def to_hash
+      {
+        :name => "table.init",
+        :elemidx => @elemidx,
+        :tableidx => @tableidx
+      }
+    end
   end
 
-  #..snip..
+  class ElemDropInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 13
+
+    attr_accessor :elemidx
+
+    def to_hash
+      {
+        :name => "elem.drop",
+        :elemidx => @elemidx,
+      }
+    end
+  end
+
+  class TableCopyInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 14
+
+    attr_accessor :tableidx1, :tableidx2
+
+    def to_hash
+      {
+        :name => "table.copy",
+        :elemidx => @elemidx,
+        :tableidx1 => @tableidx1,
+        :tableidx2 => @tableidx2
+      }
+    end
+  end
+
+  class TableGrowInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 15
+
+    attr_accessor :tableidx
+
+    def to_hash
+      {
+        :name => "table.grow",
+        :tableidx => @tableidx
+      }
+    end
+  end
+
+  class TableSizeInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 16
+
+    attr_accessor :tableidx
+
+    def to_hash
+      {
+        :name => "table.size",
+        :tableidx => @tableidx
+      }
+    end
+  end
+
+  class TableFillInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 17
+
+    attr_accessor :tableidx
+
+    def to_hash
+      {
+        :name => "table.fill",
+        :tableidx => @tableidx
+      }
+    end
+  end
 
   class I32LoadInstruction < Instruction
     TAG = 0x28
@@ -791,24 +961,52 @@ module WebAssembly
     TAG = 0x2c
 
     attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i32.load8_s",
+        :memarg => @memarg.to_hash
+      }
+    end
   end
 
   class I32Load8uInstruction < Instruction
     TAG = 0x2d
 
     attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i32.load8_u",
+        :memarg => @memarg.to_hash
+      }
+    end
   end
 
   class I32Load16sInstruction < Instruction
     TAG = 0x2c
 
     attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i32.load16_s",
+        :memarg => @memarg.to_hash
+      }
+    end
   end
 
   class I32Load16uInstruction < Instruction
     TAG = 0x2d
 
     attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i32.load16_u",
+        :memarg => @memarg.to_hash
+      }
+    end
   end
 
   class I32StoreInstruction < Instruction
@@ -828,28 +1026,105 @@ module WebAssembly
     TAG = 0x3a
 
     attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i32.store8",
+        :memarg => @memarg.to_hash
+      }
+    end
   end
 
   class I32Store16Instruction < Instruction
     TAG = 0x3b
 
     attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i32.store16",
+        :memarg => @memarg.to_hash
+      }
+    end
   end
 
   class MemorySizeInstruction < Instruction
     TAG = 0x3f
+
+    attr_accessor :placeholder
+
+    def to_hash
+      {
+        :name => "memory.size",
+      }
+    end
   end
 
   class MemoryGrowInstruction < Instruction
     TAG = 0x40
+
+    attr_accessor :placeholder
+
+    def to_hash
+      {
+        :name => "memory.grow",
+      }
+    end
   end
 
   class MemoryInitInstruction < Instruction
     TAG = 0xFC
     SUBTAG = 8
+
+    attr_accessor :dataidx, :placeholer
+
+    def to_hash
+      {
+        :name => "memory.init",
+        :dataidx => @dataidx
+      }
+    end
   end
 
-  #..snip..
+  class DataDropInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 9
+
+    attr_accessor :dataidx
+
+    def to_hash
+      {
+        :name => "data.drop",
+        :dataidx => @dataidx
+      }
+    end
+  end
+
+  class MemoryCopyInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 10
+
+    attr_accessor :placeholder1, :placeholer2
+
+    def to_hash
+      {
+        :name => "memory.copy",
+      }
+    end
+  end
+
+  class MemoryFillInstruction < Instruction
+    TAG = 0xFC
+    SUBTAG = 11
+
+    attr_accessor :placeholder
+
+    def to_hash
+      {
+        :name => "memory.fill",
+      }
+    end
+  end
 
   class I32ConstInstruction < Instruction
     TAG = 0x41
@@ -876,18 +1151,42 @@ module WebAssembly
 
   class I32EqInstruction < Instruction
     TAG = 0x46
+
+    def to_hash
+      {
+        :name => "i32.eq"
+      }
+    end
   end
 
   class I32NeInstruction < Instruction
     TAG = 0x47
+
+    def to_hash
+      {
+        :name => "i32.ne"
+      }
+    end
   end
 
   class I32LtsInstruction < Instruction
     TAG = 0x48
+
+    def to_hash
+      {
+        :name => "i32.lt_s"
+      }
+    end
   end
 
   class I32LtuInstruction < Instruction
     TAG = 0x49
+
+    def to_hash
+      {
+        :name => "i32.lt_u"
+      }
+    end
   end
 
   class I32GtsInstruction < Instruction
@@ -895,41 +1194,89 @@ module WebAssembly
 
     def to_hash
       {
-        :name => "i32.gts"
+        :name => "i32.gt_s"
       }
     end
   end
 
   class I32GtuInstruction < Instruction
     TAG = 0x4b
+
+    def to_hash
+      {
+        :name => "i32.gt_u"
+      }
+    end
   end
 
   class I32LesInstruction < Instruction
     TAG = 0x4c
+
+    def to_hash
+      {
+        :name => "i32.le_s"
+      }
+    end
   end
 
   class I32LeuInstruction < Instruction
     TAG = 0x4d
+
+    def to_hash
+      {
+        :name => "i32.le_u"
+      }
+    end
   end
 
   class I32GesInstruction < Instruction
     TAG = 0x4e
+
+    def to_hash
+      {
+        :name => "i32.ge_s"
+      }
+    end
   end
 
   class I32GeuInstruction < Instruction
     TAG = 0x4f
+
+    def to_hash
+      {
+        :name => "i32.ge_u"
+      }
+    end
   end
 
   class I32ClzInstruction < Instruction
     TAG = 0x67
+
+    def to_hash
+      {
+        :name => "i32.clz"
+      }
+    end
   end
 
   class I32CtzInstruction < Instruction
     TAG = 0x68
+
+    def to_hash
+      {
+        :name => "i32.ctz"
+      }
+    end
   end
 
   class I32PopcntInstruction < Instruction
     TAG = 0x69
+
+    def to_hash
+      {
+        :name => "i32.popcnt"
+      }
+    end
   end
 
   class I32AddInstruction < Instruction
@@ -984,10 +1331,22 @@ module WebAssembly
 
   class I32RemsInstruction < Instruction
     TAG = 0x6f
+
+    def to_hash
+      {
+        :name => "i32.rem_s"
+      }
+    end
   end
 
   class I32RemuInstruction < Instruction
     TAG = 0x70
+
+    def to_hash
+      {
+        :name => "i32.rem_u"
+      }
+    end
   end
 
   class I32AndInstruction < Instruction
@@ -1002,30 +1361,196 @@ module WebAssembly
 
   class I32OrInstruction < Instruction
     TAG = 0x72
+
+    def to_hash
+      {
+        :name => "i32.or"
+      }
+    end
   end
 
   class I32XorInstruction < Instruction
     TAG = 0x73
+
+    def to_hash
+      {
+        :name => "i32.xor"
+      }
+    end
   end
 
   class I32ShlInstruction < Instruction
     TAG = 0x74
+
+    def to_hash
+      {
+        :name => "i32.shl"
+      }
+    end
   end
 
   class I32ShrsInstruction < Instruction
     TAG = 0x75
+
+    def to_hash
+      {
+        :name => "i32.shr_s"
+      }
+    end
   end
 
   class I32ShruInstruction < Instruction
     TAG = 0x76
+
+    def to_hash
+      {
+        :name => "i32.shr_u"
+      }
+    end
   end
 
   class I32RotlInstruction < Instruction
     TAG = 0x77
+
+    def to_hash
+      {
+        :name => "i32.rot_l"
+      }
+    end
   end
 
   class I32RotrInstruction < Instruction
     TAG = 0x78
+
+    def to_hash
+      {
+        :name => "i32.rot_r"
+      }
+    end
+  end
+
+  class I32WrapI64Instruction < Instruction
+    TAG = 0xa7
+
+    def to_hash
+      {
+        :name => "i32.wrap_i64"
+      }
+    end
+  end
+
+  class I32TruncF32sInstruction < Instruction
+    TAG = 0xa8
+
+    def to_hash
+      {
+        :name => "i32.trunc_f32_s"
+      }
+    end
+  end
+
+  class I32TruncF32uInstruction < Instruction
+    TAG = 0xa9
+
+    def to_hash
+      {
+        :name => "i32.trunc_f32_u"
+      }
+    end
+  end
+
+  class I32TruncF64sInstruction < Instruction
+    TAG = 0xaa
+
+    def to_hash
+      {
+        :name => "i32.trunc_f64_s"
+      }
+    end
+  end
+
+  class I32TruncF64uInstruction < Instruction
+    TAG = 0xab
+
+    def to_hash
+      {
+        :name => "i32.trunc_f64_u"
+      }
+    end
+  end
+
+  class I32ReinterpretF32Instruction < Instruction
+    TAG = 0xbc
+
+    def to_hash
+      {
+        :name => "i32.reinterpret_f32"
+      }
+    end
+  end
+
+  class I32Extend8sInstruction < Instruction
+    TAG = 0xc0
+
+    def to_hash
+      {
+        :name => "i32.extend8_s"
+      }
+    end
+  end
+
+  class I32Extend16sInstruction < Instruction
+    TAG = 0xc1
+
+    def to_hash
+      {
+        :name => "i32.extend16_s"
+      }
+    end
+  end
+
+  class I32TruncSatF32sInstruction < Instruction
+    TAG = 0xfc
+    SUBTAG = 0
+
+    def to_hash
+      {
+        :name => "i32.trunc_sat_f32_s"
+      }
+    end
+  end
+
+  class I32TruncSatF32uInstruction < Instruction
+    TAG = 0xfc
+    SUBTAG = 1
+
+    def to_hash
+      {
+        :name => "i32.trunc_sat_f32_u"
+      }
+    end
+  end
+
+  class I32TruncSatF64sInstruction < Instruction
+    TAG = 0xfc
+    SUBTAG = 2
+
+    def to_hash
+      {
+        :name => "i32.trunc_sat_f64_s"
+      }
+    end
+  end
+
+  class I32TruncSatF64uInstruction < Instruction
+    TAG = 0xfc
+    SUBTAG = 3
+
+    def to_hash
+      {
+        :name => "i32.trunc_sat_f64_u"
+      }
+    end
   end
 
   class Memarg
