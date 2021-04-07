@@ -1,6 +1,6 @@
 読込
 
-- リフレクションを使用してInstruction周りのコードをまとめる
+- [v] リフレクションを使用してInstruction周りのコードをまとめる
 - 足りないコードを埋める
 	- Instruction
 	- [v] Section

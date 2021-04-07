@@ -452,12 +452,10 @@ module WebAssembly
 			[end_tag, instructions]
 		end
 
-
-
 		def read_instruction
 			tag = @buffer.read_byte
-			instname = Instruction.name_by_tag tag
-			method_name = "read_inst_#{instname}"
+			name = Instruction.name_by_tag tag
+			method_name = "read_inst_#{name}"
 			send method_name
 		end
 
@@ -501,65 +499,43 @@ module WebAssembly
 			inst
 		end
 
-		def read_inst_br
-			inst = BrInstruction.new
-			inst.labelidx = @buffer.read_num
-			inst
-		end
-
-		def read_inst_br_if
-			inst = BrIfInstruction.new
-			inst.labelidx = @buffer.read_num
-			inst
-		end
-
-		def read_inst_call
-			inst = CallInstruction.new
-			inst.funcidx = @buffer.read_num
-			inst
-		end
-
-		def read_inst_call_indirect
-			inst = CallIndirectInstruction.new
-			inst.typeidx = @buffer.read_num
-			inst.tableidx = @buffer.read_num
-			inst
-		end
-
-		def read_inst_local_get
-			inst = LocalGetInstruction.new
-			inst.index = @buffer.read_num
-			inst
-		end
-
-		def read_inst_local_set
-			inst = LocalSetInstruction.new
-			inst.index = @buffer.read_num
-			inst
-		end
-
-		def read_inst_local_tee
-			inst = LocalTeeInstruction.new
-			inst.index = @buffer.read_num
-			inst
-		end
-
-		def read_inst_global_get
-			inst = GlobalGetInstruction.new
-			inst.index = @buffer.read_num
-			inst
-		end
-
-		def read_inst_global_set
-			inst = GlobalSetInstruction.new
-			inst.index = @buffer.read_num
-			inst
-		end
-
-		def read_inst_i32_load
-			inst = I32LoadInstruction.new
-			inst.memarg = read_memarg
-			inst
+		{
+			"br" => ["labelidx"],
+			"br_if" => ["labelidx"],
+			"call" => ["funcidx"],
+			"call_indirect" => ["typeidx", "tableidx"],
+			"local_get" => ["index"],
+			"local_set" => ["index"],
+			"local_tee" => ["index"],
+			"global_get" => ["index"],
+			"global_set" => ["index"],
+			"i32_load" => {"memarg" => "read_memarg"},
+			"i32_store" => {"memarg" => "read_memarg"},
+			"i32_const" => ["value"],
+			"i32_eqz" => [],
+			"i32_eq" => [],
+			"i32_ne" => [],
+			"i32_gts" => [],
+			"i32_add" => [],
+			"i32_sub" => [],
+			"i32_mul" => [],
+			"i32_and" => [],
+		}.each do |name, props|
+			define_method "read_inst_#{name}" do
+				classname = name.capitalize.gsub(/_([a-z])/) { $1.upcase }
+				classname += "Instruction"
+				inst = WebAssembly.const_get(classname).new
+				if props.instance_of? Array
+					props.each do |prop|
+						inst.send "#{prop}=", @buffer.read_num
+					end
+				else
+					props.each do |prop, reader|
+						inst.send "#{prop}=", send(reader)
+					end
+				end
+				inst
+			end
 		end
 
 		def read_memarg
@@ -568,61 +544,6 @@ module WebAssembly
 			memarg.offset = @buffer.read_num
 			memarg
 		end
-
-		def read_inst_i32_store
-			inst = I32StoreInstruction.new
-			inst.memarg = read_memarg
-			inst
-		end
-
-		def read_inst_i32_const
-			inst = I32ConstInstruction.new
-			inst.value = @buffer.read_num 
-			inst
-		end
-
-		def read_inst_i32_eqz
-			I32EqzInstruction.new
-		end
-
-		def read_inst_i32_eq
-			I32EqInstruction.new
-		end
-
-		def read_inst_i32_ne
-			I32NeInstruction.new
-		end
-
-
-		def read_inst_i32_gts
-			I32GtsInstruction.new
-		end
-
-
-
-		def read_inst_i32_add
-			I32AddInstruction.new
-		end
-
-		def read_inst_i32_sub
-			I32SubInstruction.new
-		end
-
-		def read_inst_i32_mul
-			I32MulInstruction.new
-		end
-
-
-
-
-		def read_inst_i32_and
-			I32AndInstruction.new
-		end
-
-
-
-
-
 
 		def read_data_section
 			section = DataSection.new

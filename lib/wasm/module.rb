@@ -567,6 +567,11 @@ module WebAssembly
 
     attr_accessor :blocktype, :instructions
 
+    def initialize
+      @blocktype = nil
+      @instructions = nil
+    end
+
     def to_hash
       {
         :name => "block",
@@ -579,6 +584,11 @@ module WebAssembly
     TAG = 0x03
 
     attr_accessor :blocktype, :instructions
+
+    def initialize
+      @blocktype = nil
+      @instructions = nil
+    end
 
     def to_hash
       {
@@ -1023,7 +1033,7 @@ module WebAssembly
 
     def to_hash
       {
-        :align => @arign,
+        :align => @align,
         :offset => @offset
       }
     end

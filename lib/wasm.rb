@@ -8,10 +8,12 @@ filepath = %w(
   spec/data/change.wasm
   spec/data/understanding-text-format/wasm-table.wasm
   spec/data/understanding-text-format/logger2.wasm
-)[5]
+)[2]
 loader = WebAssembly::WASMLoader.new
 mod = loader.load filepath
 pp mod.to_hash
+
+#p WebAssembly::IfInstruction.instance_methods.find_all {|m| m.to_s =~ /[a-z_]+=$/}
 
 =begin
 import_objects = {
