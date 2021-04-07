@@ -66,11 +66,12 @@ module WebAssembly
 			read
 		end
 
+		# https://en.wikipedia.org/wiki/LEB128
 		def read_leb128
 			num = 0
 			fig = 0
 			loop do
-				part = read
+				part = read_byte
 				last = part < 128
 				part = (part & 0b01111111) << fig
 				num = num | part
@@ -81,6 +82,21 @@ module WebAssembly
 		end
 
 		alias read_num read_leb128
+
+		# https://en.wikipedia.org/wiki/LEB128#Signed_LEB128
+		def read_signed_num
+			num = 0
+			fig = 0
+			loop do
+				part = read_byte
+				last = (part & 0b10000000) == 0
+				part = (part & 0b01111111) << fig
+				num = num | part
+				fig += 7
+				break if last
+			end
+			num
+		end
 
 		def read_name
 			bytes = read_vec do
@@ -106,15 +122,15 @@ module WebAssembly
 				limit.min = read_num
 				limit.max = read_num
 			else
-				raise "invalid limit type: #{type}"
+				raise StandardError.new("invalid limit type: #{type}")
 			end
 			limit
 		end
 	end
 
 	class WASMLoader
-		BLOCK_END = 0x0b
-		THEN_END = 0x05
+		OP_END = 0x0b
+		OP_ELSE = 0x05
 		NUM_TYPES = {
 			0x7c => :f64,
 			0x7d => :f32,
@@ -208,7 +224,7 @@ module WebAssembly
 		def read_functype
 			functype = FuncType.new
 			tag = @buffer.read_byte
-			raise "invalid functype: #{tag}" unless tag == FuncType::TAG
+			raise StandardError.new("invalid functype: #{tag}") unless tag == FuncType::TAG
 			functype.params = read_resulttype
 			functype.results = read_resulttype
 			functype
@@ -222,7 +238,12 @@ module WebAssembly
 		end
 
 		def read_valtype
-			num = @buffer.read_num
+			num = @buffer.read_byte
+			NUM_TYPES[num] || REF_TYPES[num]  # TODO
+		end
+
+		def peek_valtype
+			num = @buffer.peek
 			NUM_TYPES[num] || REF_TYPES[num]  # TODO
 		end
 
@@ -285,7 +306,7 @@ module WebAssembly
 				when 1
 					:mut
 				else
-					raise "invalid mut: #{type}"
+					raise StandardError.new("invalid mut: #{type}")
 				end
 			globaltype
 		end
@@ -358,7 +379,7 @@ module WebAssembly
 				when 0x03
 					GlobalIndex.new
 				else
-					raise "invalid export desc: #{type}"
+					raise StandardError.new("invalid export desc: #{type}")
 				end
 			export.desc.index = @buffer.read_num
 			export
@@ -392,21 +413,21 @@ module WebAssembly
 					element.add_funcidx @buffer.read_num
 				end
 			when 0b001
-				raise "not yet implemented: #{tag}"
+				raise StandardError.new("not yet implemented: #{tag}")
 			when 0b010
-				raise "not yet implemented: #{tag}"
+				raise StandardError.new("not yet implemented: #{tag}")
 			when 0b011
-				raise "not yet implemented: #{tag}"
+				raise StandardError.new("not yet implemented: #{tag}")
 			when 0b100
-				raise "not yet implemented: #{tag}"
+				raise StandardError.new("not yet implemented: #{tag}")
 			when 0b101
-				raise "not yet implemented: #{tag}"
+				raise StandardError.new("not yet implemented: #{tag}")
 			when 0b110
-				raise "not yet implemented: #{tag}"
+				raise StandardError.new("not yet implemented: #{tag}")
 			when 0b111
-				raise "not yet implemented: #{tag}"
+				raise StandardError.new("not yet implemented: #{tag}")
 			else
-				raise "invalid element: #{tag}"
+				raise StandardError.new("invalid element: #{tag}")
 			end
 			element
 		end
@@ -440,7 +461,7 @@ module WebAssembly
 
 		def read_expressions
 			_, instructions = read_instructions do |t|
-				t == BLOCK_END
+				t == OP_END
 			end
 			instructions
 		end
@@ -472,13 +493,13 @@ module WebAssembly
 
 		def read_blocktype
 			return @buffer.read_byte if @buffer.peek == 0x40
-			valtype = read_valtype
-			return valtype if valtype
+			valtype = peek_valtype
+			return read_valtype if valtype
 			read_s33
 		end
 
 		def read_s33
-			raise "not yet implemented"
+			@buffer.read_signed_num
 		end
 
 		def read_inst_loop
@@ -493,12 +514,12 @@ module WebAssembly
 			inst.blocktype = read_blocktype
 
 			end_tag, then_exprs = read_instructions do |t|
-				t == BLOCK_END || t == THEN_END
+				t == OP_END || t == OP_ELSE
 			end
 			inst.then_instructions = then_exprs
-			if end_tag == THEN_END
+			if end_tag == OP_ELSE
 				_, else_exprs = read_instructions do |t|
-					t == BLOCK_END
+					t == OP_END
 				end
 				inst.else_instructions = else_exprs
 			end
@@ -573,11 +594,22 @@ module WebAssembly
 			"i32_remu" => [],
 			"i32_and" => [],
 			"i32_or" => [],
+			"i32_xor" => [],
 			"i32_shl" => [],
 			"i32_shrs" => [],
 			"i32_shru" => [],
 			"i32_rotl" => [],
 			"i32_rotr" => [],
+			"i32_wrap_i64" => [],
+			"i32_trunc_f32s" => [],
+			"i32_trunc_f32u" => [],
+			"i32_trunc_f64s" => [],
+			"i32_trunc_f64u" => [],
+
+			"i64_load" => {"memarg" => "read_memarg"},
+			"i64_store" => {"memarg" => "read_memarg"},
+			"f64_sqrt" => [],
+			"f64_convert_i32s" => [],
 		}.each do |name, props|
 			define_method "read_inst_#{name}" do
 				classname = name.capitalize.gsub(/_([a-z])/) { $1.upcase }
@@ -631,7 +663,7 @@ module WebAssembly
 					data.add_byte @buffer.read_byte
 				end
 			else
-				raise "invalid data type: #{tag}"
+				raise StandardError.new("invalid data type: #{tag}")
 			end
 			data
 		end

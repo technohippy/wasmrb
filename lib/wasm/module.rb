@@ -9,12 +9,12 @@ module WebAssembly
     end
 
     def magic=(magic)
-      raise "invalid magic: #{magic}" unless magic == [0x00, 0x61, 0x73, 0x6d]
+      raise StandardError.new("invalid magic: #{magic}") unless magic == [0x00, 0x61, 0x73, 0x6d]
       @magic = magic
     end
 
     def version=(version)
-      raise "invalid version: #{version}" unless version == [0x01, 0x00, 0x00, 0x00]
+      raise StandardError.new("invalid version: #{version}") unless version == [0x01, 0x00, 0x00, 0x00]
       @version = version
     end
 
@@ -350,7 +350,7 @@ module WebAssembly
     def to_hash
       {
         :table => {
-          :reftype => @reftype.to_hash,
+          :reftype => @reftype,
           :limits => @limits.to_hash,
         }
       }
@@ -538,6 +538,13 @@ module WebAssembly
 
   class Locals
     attr_accessor :count, :valtype
+
+    def to_hash
+      {
+        :count => @count,
+        :valtype => @valtype
+      }
+    end
   end
 
   class Instruction
@@ -550,7 +557,9 @@ module WebAssembly
     end
 
     def self.name_by_tag tag
-      self.by_tag(tag).name.split("::").last.sub(/Instruction$/, "").sub(/^(.)/){$1.downcase}.gsub(/([A-Z])/){ "_#{$1.downcase}" }
+      kls = self.by_tag(tag)
+      raise StandardError.new("invalid instruction tag: #{tag}") unless kls
+      kls.name.split("::").last.sub(/Instruction$/, "").sub(/^(.)/){$1.downcase}.gsub(/([A-Z])/){ "_#{$1.downcase}" }
     end
   end
 
@@ -1549,6 +1558,54 @@ module WebAssembly
     def to_hash
       {
         :name => "i32.trunc_sat_f64_u"
+      }
+    end
+  end
+
+  # ..snip..
+
+  class I64LoadInstruction < Instruction
+    TAG = 0x29
+
+    attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i64.load",
+        :memarg => @memarg.to_hash
+      }
+    end
+  end
+
+  class I64StoreInstruction < Instruction
+    TAG = 0x37
+
+    attr_accessor :memarg
+
+    def to_hash
+      {
+        :name => "i64.store",
+        :memarg => @memarg.to_hash
+      }
+    end
+  end
+
+  class F64SqrtInstruction < Instruction
+    TAG = 0x9f
+
+    def to_hash
+      {
+        :name => "f64.sqrt"
+      }
+    end
+  end
+
+  class F64ConvertI32sInstruction < Instruction
+    TAG = 0xb7
+
+    def to_hash
+      {
+        :name => "f64.convert_i32_s"
       }
     end
   end
