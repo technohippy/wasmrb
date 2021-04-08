@@ -24,6 +24,13 @@ module WebAssembly
       end
     end
 
+    %w(custom type import function table memory global
+      export start element code data datacount).each do |name|
+      define_method "#{name}_section" do
+        section_by_name name
+      end
+    end
+
     def instantiate import_object=nil
       inst = Instance.new self, import_object
       inst.compile
@@ -76,6 +83,8 @@ module WebAssembly
   class TypeSection < Section
     ID = 1
 
+    attr_accessor :functypes
+
     def initialize
       @functypes = []
     end
@@ -93,6 +102,8 @@ module WebAssembly
 
   class ImportSection < Section
     ID = 2
+
+    attr_accessor :imports
 
     def initialize
       @imports = []
@@ -112,6 +123,8 @@ module WebAssembly
   class FunctionSection < Section
     ID = 3
 
+    attr_accessor :type_indices
+
     def initialize
       @type_indices = []
     end
@@ -129,6 +142,8 @@ module WebAssembly
 
   class TableSection < Section
     ID = 4
+
+    attr_reader :tabletypes
 
     def initialize
       @tabletypes = []
@@ -184,6 +199,8 @@ module WebAssembly
   class ExportSection < Section
     ID = 7
 
+    attr_reader :exports
+
     def initialize
       @exports = []
     end
@@ -220,6 +237,8 @@ module WebAssembly
   class ElementSection < Section
     ID = 9
 
+    attr_reader :elements
+
     def initialize
       @elements = []
     end
@@ -237,6 +256,8 @@ module WebAssembly
 
   class CodeSection < Section
     ID = 10
+
+    attr_accessor :codes
 
     def initialize
       @codes = []
@@ -315,6 +336,10 @@ module WebAssembly
 
   class Import
     attr_accessor :mod, :name, :desc
+
+    def retrieve import_object
+      import_object[@mod.to_sym][@name.to_sym]
+    end
 
     def to_hash
       {
@@ -499,7 +524,7 @@ module WebAssembly
   end
 
   class Element
-    attr_accessor :expression
+    attr_accessor :funcidxs, :expression
 
     def initialize
       @funcidxs = []
@@ -511,7 +536,8 @@ module WebAssembly
 
     def to_hash
       {
-        :funcidx => @funcidxs
+        :funcidx => @funcidxs,
+        :expression => @expression.map {|e| e.to_hash}
       }
     end
   end
@@ -560,6 +586,10 @@ module WebAssembly
       kls = self.by_tag(tag)
       raise StandardError.new("invalid instruction tag: #{tag}") unless kls
       kls.name.split("::").last.sub(/Instruction$/, "").sub(/^(.)/){$1.downcase}.gsub(/([A-Z])/){ "_#{$1.downcase}" }
+    end
+
+    def call context
+			raise StandardError.new("not yet implemented: #{self.class.name}")
     end
   end
 
@@ -684,6 +714,11 @@ module WebAssembly
 
     attr_accessor :funcidx
 
+    def call context
+      func = context.functions[@funcidx]
+      func.call context
+    end
+
     def to_hash
       {
         :name => "call",
@@ -696,6 +731,15 @@ module WebAssembly
     TAG = 0x11
 
     attr_accessor :typeidx, :tableidx
+
+    def call context
+      # TODO: must check typeidx
+      table = context.tables[@tableidx]
+      funcidx = context.stack.pop
+      func = table[funcidx]
+      raise StandardError.new("invalid funcidx: #{funcidx}") unless func
+      func.call context
+    end
 
     def to_hash
       {
@@ -779,6 +823,10 @@ module WebAssembly
     TAG = 0x20
 
     attr_accessor :index
+
+    def call context
+      context.stack.push context.locals[index]
+    end
 
     def to_hash
       {
@@ -1140,6 +1188,10 @@ module WebAssembly
 
     attr_accessor :value
 
+    def call context
+      context.stack.push value
+    end
+
     def to_hash
       {
         :name => "i32.const",
@@ -1291,6 +1343,12 @@ module WebAssembly
   class I32AddInstruction < Instruction
     TAG = 0x6a
 
+    def call context
+      lhs = context.stack.pop
+      rhs = context.stack.pop
+      context.stack.push(lhs+rhs)
+    end
+
     def to_hash
       {
         :name => "i32.add"
@@ -1301,6 +1359,12 @@ module WebAssembly
   class I32SubInstruction < Instruction
     TAG = 0x6b
 
+    def call context
+      lhs = context.stack.pop
+      rhs = context.stack.pop
+      context.stack.push(lhs-rhs)
+    end
+
     def to_hash
       {
         :name => "i32.sub"
@@ -1310,6 +1374,12 @@ module WebAssembly
 
   class I32MulInstruction < Instruction
     TAG = 0x6c
+
+    def call context
+      lhs = context.stack.pop
+      rhs = context.stack.pop
+      context.stack.push(lhs*rhs)
+    end
 
     def to_hash
       {
@@ -1618,6 +1688,7 @@ module WebAssembly
         :align => @align,
         :offset => @offset
       }
+      32
     end
   end
 
