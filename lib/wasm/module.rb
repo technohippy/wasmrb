@@ -1006,6 +1006,11 @@ module WebAssembly
 
     attr_accessor :memarg
 
+    def call context
+      memory = context.memories[0] # TODO: all memory instructions implicitly operate on memory index 0.
+      context.stack.push memory[memarg.offset]
+    end
+
     def to_hash
       {
         :name => "i32.load",
@@ -1070,6 +1075,11 @@ module WebAssembly
     TAG = 0x36
 
     attr_accessor :memarg
+
+    def call context
+      memory = context.memories[0] # TODO: all memory instructions implicitly operate on memory index 0.
+      memory[memarg.offset] = context.stack.pop # TODO
+    end
 
     def to_hash
       {

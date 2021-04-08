@@ -50,8 +50,19 @@ inst = mod.instantiate(
 )
 inst.exports.writeHi()
 
+import_object = {
+  :js => {
+    :memory => [],
+    :table => []
+  }
+}
+mod0 = loader.load "spec/data/understanding-text-format/shared0.wasm"
+inst0 = mod0.instantiate import_object
+mod1 = loader.load "spec/data/understanding-text-format/shared1.wasm"
+inst1 = mod1.instantiate import_object
+puts inst1.exports.doIt()
+
 mod = loader.load "spec/data/understanding-text-format/wasm-table.wasm"
-pp mod.to_hash
 inst = mod.instantiate
 puts inst.exports.callByIndex(0)
 puts inst.exports.callByIndex(1)

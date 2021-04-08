@@ -15,57 +15,65 @@ module WebAssembly
 			type_section = @mod.type_section
 
 			# import
-			@mod.import_section&.imports&.each do |i|
-				obj = i.retrieve @import_object
-				case i.desc
-				when ImportMemoryDesc
-					memdesc = i.desc
-					@context.memories.push obj
-				when ImportTableDesc
-					tabledesc = i.desc
-					@context.tables.push obj
-				when ImportTypeDesc
-					funcdesc = i.desc
-					@context.functions.push ImportedFunction.new(type_section.functypes[funcdesc.index.index], obj)
-				when ImportGlobalDesc
-					globaldesc = i.desc
-					@context.globals.push obj
+			import_section = @mod.import_section
+			if import_section
+				import_section.imports.each do |i|
+					obj = i.retrieve @import_object
+					case i.desc
+					when ImportMemoryDesc
+						memdesc = i.desc
+						@context.memories.push obj
+					when ImportTableDesc
+						tabledesc = i.desc
+						@context.tables.push obj
+					when ImportTypeDesc
+						funcdesc = i.desc
+						@context.functions.push ImportedFunction.new(type_section.functypes[funcdesc.index.index], obj)
+					when ImportGlobalDesc
+						globaldesc = i.desc
+						@context.globals.push obj
+					end
 				end
 			end
 
 			# function
 			function_section = @mod.function_section
 			code_section = @mod.code_section
-			function_section.type_indices.each_with_index do |ti, i|
-				@context.functions.push Function.new(type_section.functypes[ti], code_section.codes[i])
+			if function_section
+				function_section.type_indices.each_with_index do |ti, i|
+					@context.functions.push Function.new(type_section.functypes[ti], code_section.codes[i])
+				end
 			end
 
 			# export
-			@mod.export_section.exports.each do |e|
-				case e.desc
-				when FuncIndex
-					@exported_methods.push e.name
-					context = @context
-					functions = @context.functions
-					@exports.define_singleton_method e.name do |*args|
-						result = functions[e.desc.index].call(context, *args)
-						context.clear_stack # TODO: check spec
-						result
-					end
-				when TableIndex
-					tables = @context.tables
-					@exports.define_singleton_method e.name do
-						tables[e.desc.index]
-					end
-				when MemoryIndex
-					memories = @context.memories
-					@exports.define_singleton_method e.name do
-						memories[e.desc.index]
-					end
-				when GlobalIndex
-					globals = @context.globals
-					@exports.define_singleton_method e.name do
-						globals[e.desc.index]
+			export_section = @mod.export_section
+			if export_section
+				export_section.exports.each do |e|
+					case e.desc
+					when FuncIndex
+						@exported_methods.push e.name
+						context = @context
+						functions = @context.functions
+						@exports.define_singleton_method e.name do |*args|
+							result = functions[e.desc.index].call(context, *args)
+							#context.clear_stack # TODO: check spec
+							result
+						end
+					when TableIndex
+						tables = @context.tables
+						@exports.define_singleton_method e.name do
+							tables[e.desc.index]
+						end
+					when MemoryIndex
+						memories = @context.memories
+						@exports.define_singleton_method e.name do
+							memories[e.desc.index]
+						end
+					when GlobalIndex
+						globals = @context.globals
+						@exports.define_singleton_method e.name do
+							globals[e.desc.index]
+						end
 					end
 				end
 			end
