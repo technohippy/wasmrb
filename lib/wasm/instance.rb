@@ -169,6 +169,14 @@ module WebAssembly
 	end
 
 	class Context
+		class Global
+			attr_accessor :value
+
+			def initialize value
+				@value = value
+			end
+		end
+
 		attr_reader :stack, :tables, :memories, :functions, :globals, :locals
 
 		def initialize

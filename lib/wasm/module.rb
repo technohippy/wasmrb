@@ -867,6 +867,10 @@ module WebAssembly
 
     attr_accessor :index
 
+    def call context
+      context.stack.push context.globals[@index].value
+    end
+
     def to_hash
       {
         :name => "global.get",
@@ -879,6 +883,10 @@ module WebAssembly
     TAG = 0x24
 
     attr_accessor :index
+
+    def call context
+      context.globals[@index].value = context.stack.pop
+    end
 
     def to_hash
       {
@@ -1354,8 +1362,8 @@ module WebAssembly
     TAG = 0x6a
 
     def call context
-      lhs = context.stack.pop
       rhs = context.stack.pop
+      lhs = context.stack.pop
       context.stack.push(lhs+rhs)
     end
 
@@ -1370,8 +1378,8 @@ module WebAssembly
     TAG = 0x6b
 
     def call context
-      lhs = context.stack.pop
       rhs = context.stack.pop
+      lhs = context.stack.pop
       context.stack.push(lhs-rhs)
     end
 
@@ -1386,8 +1394,8 @@ module WebAssembly
     TAG = 0x6c
 
     def call context
-      lhs = context.stack.pop
       rhs = context.stack.pop
+      lhs = context.stack.pop
       context.stack.push(lhs*rhs)
     end
 
@@ -1400,6 +1408,12 @@ module WebAssembly
 
   class I32DivsInstruction < Instruction
     TAG = 0x6d
+
+    def call context
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(lhs/rhs)
+    end
 
     def to_hash
       {

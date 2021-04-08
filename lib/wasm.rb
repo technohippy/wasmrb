@@ -19,6 +19,25 @@ loader = WebAssembly::WASMLoader.new
 end
 =end
 
+mod = loader.load "spec/data/js-api-examples/fail.wasm"
+inst = mod.instantiate
+begin
+  inst.exports.fail_me()
+rescue => e
+  puts e
+end
+
+global = WebAssembly::Context::Global.new 0
+mod = loader.load "spec/data/js-api-examples/global.wasm"
+inst = mod.instantiate :js => {
+  :global => global
+}
+puts inst.exports.getGlobal() # -> 0
+global.value = 42
+puts inst.exports.getGlobal() # -> 42
+inst.exports.incGlobal()
+puts inst.exports.getGlobal() # -> 43
+
 mod = loader.load "spec/data/understanding-text-format/add.wasm"
 inst = mod.instantiate
 puts inst.exports.add(1, 2)
