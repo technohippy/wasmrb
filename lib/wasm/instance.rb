@@ -124,12 +124,13 @@ module WebAssembly
 		end
 
 		def call context, *args
-			args.each do |arg|
-				context.locals.unshift arg
+			args.each_with_index do |arg, i|
+				context.locals[i] = arg
 			end
 			@code.locals.each do |local|
-				# context.locals.push local # TODO
-				raise StandardError.new("not yet implemented")
+				local.count.times do
+					context.locals.push 0
+				end
 			end
 			@code.expressions.each do |instr|
 				instr.call context
@@ -178,6 +179,7 @@ module WebAssembly
 		end
 
 		attr_reader :stack, :tables, :memories, :functions, :globals, :locals
+		attr_accessor :branch
 
 		def initialize
 			@stack = []
@@ -186,6 +188,7 @@ module WebAssembly
 			@tables = []
 			@globals = []
 			@locals = []
+			@branch = -1
 		end
 
 		def clear_stack

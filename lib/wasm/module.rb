@@ -618,6 +618,22 @@ module WebAssembly
 
     attr_accessor :blocktype, :instructions
 
+    def call context
+      br = false
+      loop do
+        context.branch = -1
+        @instructions.each do |instr|
+          instr.call context
+          if 0 <= context.branch
+            context.branch -= 1
+            br = true
+            break
+          end
+        end
+        break if br
+      end
+    end
+
     def to_hash
       {
         :name => "block",
@@ -631,9 +647,20 @@ module WebAssembly
 
     attr_accessor :blocktype, :instructions
 
-    def initialize
-      @blocktype = nil
-      @instructions = nil
+    def call context
+      br = false
+      loop do
+        context.branch = -1
+        @instructions.each do |instr|
+          instr.call context
+          if 0 < context.branch
+            context.branch -= 1
+            br = true
+            break
+          end
+        end
+        break if br
+      end
     end
 
     def to_hash
@@ -664,6 +691,10 @@ module WebAssembly
 
     attr_accessor :labelidx
 
+    def call context
+      context.branch = @labelidx
+    end
+
     def to_hash
       {
         :name => "br",
@@ -676,6 +707,13 @@ module WebAssembly
     TAG = 0x0d
 
     attr_accessor :labelidx
+
+    def call context
+      cond = context.stack.pop
+      unless cond == 0
+        context.branch = @labelidx
+      end
+    end
 
     def to_hash
       {
@@ -840,6 +878,10 @@ module WebAssembly
     TAG = 0x21
 
     attr_accessor :index
+
+    def call context
+      context.locals[index] = context.stack.pop
+    end
 
     def to_hash
       {
@@ -1230,6 +1272,12 @@ module WebAssembly
 
   class I32EqInstruction < Instruction
     TAG = 0x46
+
+    def call context
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs == rhs then 1 else 0 end)
+    end
 
     def to_hash
       {
