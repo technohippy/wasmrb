@@ -152,6 +152,7 @@ inst1 = mod1.instantiate import_object
 puts inst1.exports.doIt() # 42
 ```
 
-== Refs.
+Refs.
+----
 
 - https://webassembly.github.io/spec/
