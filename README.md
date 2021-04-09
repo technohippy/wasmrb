@@ -156,3 +156,4 @@ Refs.
 ----
 
 - https://webassembly.github.io/spec/
+- https://github.com/mdn/webassembly-examples
