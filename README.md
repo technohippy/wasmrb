@@ -1,7 +1,7 @@
 WASM.rb
 ====
 
-WASM loader and runner in Ruby language
+WASM Runner in Ruby language
 
 I'm developing this tool for a learning purpose.
 There must be many bugs and unimplemented specs.
