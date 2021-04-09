@@ -598,6 +598,10 @@ module WebAssembly
   class UnreachableInstruction < Instruction
     TAG = 0x00
 
+    def call context
+      raise StandardError.new("unreachable op")
+    end
+
     def to_hash
       {
         :name => "unreachable",
@@ -607,6 +611,10 @@ module WebAssembly
 
   class NopInstruction < Instruction
     TAG = 0x01
+
+    def call context
+      # nop
+    end
 
     def to_hash
       {
@@ -897,6 +905,10 @@ module WebAssembly
     TAG = 0x22
 
     attr_accessor :index
+
+    def call context
+      context.locals[index] = context.peek_stack
+    end
 
     def to_hash
       {
@@ -1267,6 +1279,11 @@ module WebAssembly
   class I32EqzInstruction < Instruction
     TAG = 0x45
 
+    def call context
+      val = context.stack.pop
+      context.stack.push(if val == 0 then 1 else 0 end)
+    end
+
     def to_hash
       {
         :name => "i32.eqz"
@@ -1293,6 +1310,12 @@ module WebAssembly
   class I32NeInstruction < Instruction
     TAG = 0x47
 
+    def call context
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs != rhs then 1 else 0 end)
+    end
+
     def to_hash
       {
         :name => "i32.ne"
@@ -1302,6 +1325,13 @@ module WebAssembly
 
   class I32LtsInstruction < Instruction
     TAG = 0x48
+
+    def call context
+      # TODO: signed
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs < rhs then 1 else 0 end)
+    end
 
     def to_hash
       {
@@ -1313,6 +1343,13 @@ module WebAssembly
   class I32LtuInstruction < Instruction
     TAG = 0x49
 
+    def call context
+      # TODO: unsigned
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs < rhs then 1 else 0 end)
+    end
+
     def to_hash
       {
         :name => "i32.lt_u"
@@ -1322,6 +1359,13 @@ module WebAssembly
 
   class I32GtsInstruction < Instruction
     TAG = 0x4a
+
+    def call context
+      # TODO: signed
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs > rhs then 1 else 0 end)
+    end
 
     def to_hash
       {
@@ -1333,6 +1377,13 @@ module WebAssembly
   class I32GtuInstruction < Instruction
     TAG = 0x4b
 
+    def call context
+      # TODO: unsigned
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs > rhs then 1 else 0 end)
+    end
+
     def to_hash
       {
         :name => "i32.gt_u"
@@ -1342,6 +1393,13 @@ module WebAssembly
 
   class I32LesInstruction < Instruction
     TAG = 0x4c
+
+    def call context
+      # TODO: signed
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs <= rhs then 1 else 0 end)
+    end
 
     def to_hash
       {
@@ -1353,6 +1411,13 @@ module WebAssembly
   class I32LeuInstruction < Instruction
     TAG = 0x4d
 
+    def call context
+      # TODO: unsigned
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs <= rhs then 1 else 0 end)
+    end
+
     def to_hash
       {
         :name => "i32.le_u"
@@ -1363,6 +1428,13 @@ module WebAssembly
   class I32GesInstruction < Instruction
     TAG = 0x4e
 
+    def call context
+      # TODO: signed
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs >= rhs then 1 else 0 end)
+    end
+
     def to_hash
       {
         :name => "i32.ge_s"
@@ -1372,6 +1444,13 @@ module WebAssembly
 
   class I32GeuInstruction < Instruction
     TAG = 0x4f
+
+    def call context
+      # TODO: unsigned
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(if lhs >= rhs then 1 else 0 end)
+    end
 
     def to_hash
       {
@@ -1462,6 +1541,7 @@ module WebAssembly
     TAG = 0x6d
 
     def call context
+      # TODO: signed
       rhs = context.stack.pop
       lhs = context.stack.pop
       context.stack.push(lhs/rhs)
@@ -1476,6 +1556,13 @@ module WebAssembly
 
   class I32DivuInstruction < Instruction
     TAG = 0x6e
+
+    def call context
+      # TODO: unsigned
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(lhs/rhs)
+    end
 
     def to_hash
       {
@@ -1507,6 +1594,12 @@ module WebAssembly
   class I32AndInstruction < Instruction
     TAG = 0x71
 
+    def call context
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(lhs & rhs)
+    end
+
     def to_hash
       {
         :name => "i32.and"
@@ -1517,6 +1610,12 @@ module WebAssembly
   class I32OrInstruction < Instruction
     TAG = 0x72
 
+    def call context
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(lhs | rhs)
+    end
+
     def to_hash
       {
         :name => "i32.or"
@@ -1526,6 +1625,12 @@ module WebAssembly
 
   class I32XorInstruction < Instruction
     TAG = 0x73
+
+    def call context
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(lhs ^ rhs)
+    end
 
     def to_hash
       {

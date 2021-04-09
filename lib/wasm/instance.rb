@@ -191,6 +191,10 @@ module WebAssembly
 			@branch = -1
 		end
 
+		def peek_stack
+			@stack[@stack.size-1]
+		end
+
 		def clear_stack
 			@stack.clear
 		end

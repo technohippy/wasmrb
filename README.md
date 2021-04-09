@@ -155,5 +155,6 @@ puts inst1.exports.doIt() # 42
 Refs.
 ----
 
-- https://webassembly.github.io/spec/
-- https://github.com/mdn/webassembly-examples
+- [WebAssembly Specification](https://webassembly.github.io/spec/)
+- [WebAssembly Opcodes](https://pengowray.github.io/wasm-ops/)
+- [WebAssembly Examples (MDN)](https://github.com/mdn/webassembly-examples)

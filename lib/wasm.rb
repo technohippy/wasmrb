@@ -48,7 +48,6 @@ puts tbl[0].call # 42
 puts tbl[1].call # 83
 
 mod = loader.load "spec/data/understanding-text-format/add.wasm"
-pp mod.to_hash
 inst = mod.instantiate
 puts inst.exports.add(1, 2) # 3
 
