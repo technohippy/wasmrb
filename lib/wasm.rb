@@ -23,15 +23,10 @@ inst.exports.incGlobal()
 puts inst.exports.getGlobal() # 43
 
 mod = loader.load "spec/data/js-api-examples/memory.wasm"
-const = mod.code_section.codes[0].expressions[2]
-const.value = 1
-const = mod.code_section.codes[0].expressions[6].instructions[0].instructions[10]
-const.value = 1
 inst = mod.instantiate :js => {
-  :mem => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  :mem => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].pack("i*").unpack("C*")
 }
-puts :wrong
-puts inst.exports.accumulate(0, 10) # TODO: メモリの持ち方要検討
+puts inst.exports.accumulate(0, 10) # 45
 
 mod = loader.load "spec/data/js-api-examples/simple.wasm"
 inst = mod.instantiate :imports => {
