@@ -1,13 +1,15 @@
-= WASM.rb
+WASM.rb
+###
 
 WASM loader and runner in Ruby language
 
 I'm developing this tool for a learning purpose.
 There must be many bugs and unimplemented specs.
 
-== How to Use
+How to Use
+---
 
-=== How to Load and Inspect
+### How to Load and Inspect
 
 Code:
 
@@ -43,7 +45,7 @@ Output:
          {:name=>"i32.add"}]}]}]}
 ```
 
-=== How to Run
+### How to Run
 
 Code:
 
@@ -58,11 +60,12 @@ Output:
 3
 ```
 
-== Sample Codes
+Sample Codes
+----
 
-=== Global 
+### Global 
 
-```
+```ruby
 global = WebAssembly::Context::Global.new 0
 mod = loader.load "js-api-examples/global.wasm"
 inst = mod.instantiate :js => {
@@ -75,9 +78,9 @@ inst.exports.incGlobal()
 puts inst.exports.getGlobal() # 43
 ```
 
-=== Memory
+### Memory
 
-```
+```ruby
 mod = loader.load "js-api-examples/memory.wasm"
 inst = mod.instantiate :js => {
   :mem => (0..9).to_a.pack("i*").unpack("C*")
@@ -85,7 +88,7 @@ inst = mod.instantiate :js => {
 puts inst.exports.accumulate(0, 10) # 45
 ```
 
-```
+```ruby
 mod = loader.load "understanding-text-format/logger2.wasm"
 mem = []
 inst = mod.instantiate(
@@ -102,16 +105,16 @@ inst = mod.instantiate(
 inst.exports.writeHi() # Hi
 ```
 
-=== Table
+### Table
 
-```
+```ruby
 mod = loader.load "js-api-examples/table.wasm"
 inst = mod.instantiate
 puts inst.exports.tbl[0].call # 13
 puts inst.exports.tbl[1].call # 42
 ```
 
-```
+```ruby
 tbl = []
 mod = loader.load "js-api-examples/table2.wasm"
 inst = mod.instantiate :js => {
@@ -121,7 +124,7 @@ puts tbl[0].call # 42
 puts tbl[1].call # 83
 ```
 
-```
+```ruby
 mod = loader.load "understanding-text-format/wasm-table.wasm"
 inst = mod.instantiate
 puts inst.exports.callByIndex(0) # 42
@@ -133,9 +136,9 @@ rescue => e
 end
 ```
 
-=== Shared
+### Shared
 
-```
+```ruby
 import_object = {
   :js => {
     :memory => [],
