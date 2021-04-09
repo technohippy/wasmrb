@@ -44,6 +44,8 @@ module WebAssembly
         :sections => @sections.map {|e| e.to_hash}
       }
     end
+
+    alias inspect to_hash
   end
 
   class Section

@@ -24,7 +24,7 @@ puts inst.exports.getGlobal() # 43
 
 mod = loader.load "spec/data/js-api-examples/memory.wasm"
 inst = mod.instantiate :js => {
-  :mem => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].pack("i*").unpack("C*")
+  :mem => (0..9).to_a.pack("i*").unpack("C*")
 }
 puts inst.exports.accumulate(0, 10) # 45
 
@@ -48,6 +48,7 @@ puts tbl[0].call # 42
 puts tbl[1].call # 83
 
 mod = loader.load "spec/data/understanding-text-format/add.wasm"
+pp mod.to_hash
 inst = mod.instantiate
 puts inst.exports.add(1, 2) # 3
 
