@@ -21,7 +21,7 @@ pp mod
 
 Output:
 
-```
+```ruby
 {:magic=>[0, 97, 115, 109],
  :version=>[1, 0, 0, 0],
  :sections=>
