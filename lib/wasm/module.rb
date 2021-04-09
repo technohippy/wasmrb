@@ -2,10 +2,15 @@ require_relative "./instance.rb"
 
 module WebAssembly
   class Module
+    MAGIC = [0x00, 0x61, 0x73, 0x6d]
+    VERSION = [0x01, 0x00, 0x00, 0x00]
+
     attr_accessor :magic, :version, :sections
 
-    def initialize
-      @sections = []
+    def initialize sections=[]
+      @magic = MAGIC
+      @version = VERSION
+      @sections = sections
     end
 
     def magic=(magic)
@@ -16,6 +21,10 @@ module WebAssembly
     def version=(version)
       raise StandardError.new("invalid version: #{version}") unless version == [0x01, 0x00, 0x00, 0x00]
       @version = version
+    end
+
+    def add_section section
+      @sections.push section
     end
 
     def section_by_name name
@@ -88,6 +97,7 @@ module WebAssembly
     attr_accessor :functypes
 
     def initialize
+      @id = ID
       @functypes = []
     end
 
@@ -108,6 +118,7 @@ module WebAssembly
     attr_accessor :imports
 
     def initialize
+      @id = ID
       @imports = []
     end
 
@@ -127,8 +138,9 @@ module WebAssembly
 
     attr_accessor :type_indices
 
-    def initialize
-      @type_indices = []
+    def initialize indices=[]
+      @id = ID
+      @type_indices = indices
     end
 
     def add_type_index type_index
@@ -148,6 +160,7 @@ module WebAssembly
     attr_reader :tabletypes
 
     def initialize
+      @id = ID
       @tabletypes = []
     end
 
@@ -166,6 +179,7 @@ module WebAssembly
     ID = 5
 
     def initialize
+      @id = ID
       @memtypes = []
     end
 
@@ -184,6 +198,7 @@ module WebAssembly
     ID = 6
 
     def initialize
+      @id = ID
       @globals = []
     end
 
@@ -204,6 +219,7 @@ module WebAssembly
     attr_reader :exports
 
     def initialize
+      @id = ID
       @exports = []
     end
 
@@ -222,6 +238,7 @@ module WebAssembly
     ID = 8
 
     def initialize
+      @id = ID
       @starts = []
     end
 
@@ -242,6 +259,7 @@ module WebAssembly
     attr_reader :elements
 
     def initialize
+      @id = ID
       @elements = []
     end
 
@@ -262,6 +280,7 @@ module WebAssembly
     attr_accessor :codes
 
     def initialize
+      @id = ID
       @codes = []
     end
 
@@ -282,6 +301,7 @@ module WebAssembly
     attr_accessor :data
 
     def initialize
+      @id = ID
       @data = []
     end
 
@@ -323,9 +343,9 @@ module WebAssembly
 
     attr_accessor :params, :results
 
-    def initialize
-      @params = []
-      @results = []
+    def initialize params=[], results=[]
+      @params = params
+      @results = results
     end
 
     def to_hash
@@ -451,6 +471,10 @@ module WebAssembly
 
   class Index
     attr_accessor :index
+
+    def initialize index=nil
+      @index = index
+    end
   end
 
   class TypeIndex < Index
@@ -554,6 +578,10 @@ module WebAssembly
 
     def add_locals locals
       @locals.push locals
+    end
+
+    def add_expression expression
+      @expressions.push expression
     end
 
     def to_hash
@@ -871,6 +899,10 @@ module WebAssembly
     TAG = 0x20
 
     attr_accessor :index
+
+    def initialize index=nil
+      @index = index
+    end
 
     def call context
       context.stack.push context.locals[index]
