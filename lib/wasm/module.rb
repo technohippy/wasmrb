@@ -1143,8 +1143,9 @@ module WebAssembly
 
     def call context
       memory = context.memories[0] # TODO: all memory instructions implicitly operate on memory index 0.
+      value = context.stack.pop
       position = context.stack.pop
-      memory[position + memarg.offset] = context.stack.pop # TODO
+      memory[position + memarg.offset] = value
     end
 
     def to_hash

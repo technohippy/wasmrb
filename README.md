@@ -60,6 +60,13 @@ Output:
 3
 ```
 
+How to Test
+----
+
+```
+$ ruby test/wasm/test.rb
+```
+
 Sample Codes
 ----
 
