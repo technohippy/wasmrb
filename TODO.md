@@ -29,3 +29,7 @@
 - watを生成
 - wasmを呼び出すhtml/jsも生成
 - エラーメッセージ詳細化
+- moduleの中身をqueryStringのような形式で取り出して変更できるように
+	- いまは今はこうするしかない
+		- const = mod.code_section.codes[0].expressions[6].instructions[0].instructions[10]
+		- const.value = 1

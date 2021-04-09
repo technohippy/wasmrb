@@ -123,7 +123,7 @@ module WebAssembly
 			@code = code
 		end
 
-		def call context, *args
+		def call context=Context.new, *args
 			args.each_with_index do |arg, i|
 				context.locals[i] = arg
 			end

@@ -3,22 +3,6 @@ require_relative "./wasm/wasmloader.rb"
 
 loader = WebAssembly::WASMLoader.new
 
-=begin
-[
-  "spec/data/hw.wasm",
-  "spec/data/echo.wasm",
-  "spec/data/fizzbuzz.wasm",
-  #"spec/data/change.wasm",
-  "spec/data/understanding-text-format/wasm-table.wasm",
-  "spec/data/understanding-text-format/logger2.wasm",
-  "spec/data/understanding-text-format/shared1.wasm",
-  "spec/data/understanding-text-format/add.wasm",
-].each do |filepath|
-  mod = loader.load filepath
-  pp mod.to_hash
-end
-=end
-
 mod = loader.load "spec/data/js-api-examples/fail.wasm"
 inst = mod.instantiate
 begin
@@ -32,18 +16,41 @@ mod = loader.load "spec/data/js-api-examples/global.wasm"
 inst = mod.instantiate :js => {
   :global => global
 }
-puts inst.exports.getGlobal() # -> 0
+puts inst.exports.getGlobal() # 0
 global.value = 42
-puts inst.exports.getGlobal() # -> 42
+puts inst.exports.getGlobal() # 42
 inst.exports.incGlobal()
-puts inst.exports.getGlobal() # -> 43
+puts inst.exports.getGlobal() # 43
 
 mod = loader.load "spec/data/js-api-examples/memory.wasm"
+const = mod.code_section.codes[0].expressions[2]
+const.value = 1
+const = mod.code_section.codes[0].expressions[6].instructions[0].instructions[10]
+const.value = 1
 inst = mod.instantiate :js => {
   :mem => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 }
 puts :wrong
-puts inst.exports.accumulate(0, 10)
+puts inst.exports.accumulate(0, 10) # TODO: メモリの持ち方要検討
+
+mod = loader.load "spec/data/js-api-examples/simple.wasm"
+inst = mod.instantiate :imports => {
+  :imported_func => lambda {|n| puts n}
+}
+inst.exports.exported_func() # 42
+
+mod = loader.load "spec/data/js-api-examples/table.wasm"
+inst = mod.instantiate
+puts inst.exports.tbl[0].call # 13
+puts inst.exports.tbl[1].call # 42
+
+tbl = []
+mod = loader.load "spec/data/js-api-examples/table2.wasm"
+inst = mod.instantiate :js => {
+  :tbl => tbl
+}
+puts tbl[0].call # 42
+puts tbl[1].call # 83
 
 mod = loader.load "spec/data/understanding-text-format/add.wasm"
 inst = mod.instantiate
