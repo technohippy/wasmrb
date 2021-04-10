@@ -45,7 +45,7 @@ Output:
          {:name=>"i32.add"}]}]}]}
 ```
 
-### How to Run
+### How to Run Exported Function
 
 Code:
 
