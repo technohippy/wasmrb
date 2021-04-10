@@ -60,6 +60,50 @@ Output:
 3
 ```
 
+### How to Construct Module
+
+Code:
+
+```ruby
+type_section = WebAssembly::TypeSection.new
+type_section.add_functype WebAssembly::FuncType.new([:i32, :i32], [:i32])
+
+function_section = WebAssembly::FunctionSection.new
+function_section.add_type_index 0
+
+export = WebAssembly::Export.new
+export.name = "add"
+export.desc = WebAssembly::FuncIndex.new 0
+export_section = WebAssembly::ExportSection.new
+export_section.add_export export
+
+code = WebAssembly::Code.new
+code.add_expression WebAssembly::LocalGetInstruction.new(0)
+code.add_expression WebAssembly::LocalGetInstruction.new(1)
+code.add_expression WebAssembly::I32AddInstruction.new
+code_section = WebAssembly::CodeSection.new
+code_section.add_code code
+
+mod = WebAssembly::Module.new [type_section, function_section, export_section, code_section]
+
+inst = mod.instantiate
+puts inst.exports.add(1, 2)
+```
+
+Output:
+
+```
+3
+```
+
+### How to Serialize into WASM
+
+```ruby
+serializer = WebAssembly::WASMSerializer.new
+bytes = serializer.serialize mod
+File.binwrite "add.wasm", bytes.pack("C*")
+```
+
 How to Test
 ----
 

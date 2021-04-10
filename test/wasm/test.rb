@@ -127,6 +127,13 @@ class WasmTest < Test::Unit::TestCase
     end
   end
 
+  def test_serialize
+    mod = @loader.load "test/data/understanding-text-format/add.wasm"
+    serializer = WebAssembly::WASMSerializer.new
+    bytes = serializer.serialize mod
+    assert_equal @loader.buffer.data, bytes
+  end
+
   # {:magic=>[0, 97, 115, 109],
   # :version=>[1, 0, 0, 0],
   # :sections=>
@@ -168,13 +175,11 @@ class WasmTest < Test::Unit::TestCase
     mod = WebAssembly::Module.new [type_section, function_section, export_section, code_section]
 
     inst = mod.instantiate
-    assert_equal 3, inst.exports.add(1, 2)
-  end
+    assert_equal 3, inst.exports.add(1, 2), "run"
 
-  def test_serialize
-    mod = @loader.load "test/data/understanding-text-format/add.wasm"
     serializer = WebAssembly::WASMSerializer.new
     bytes = serializer.serialize mod
-    assert_equal @loader.buffer.data, bytes
+    mod = @loader.load "test/data/understanding-text-format/add.wasm"
+    assert_equal @loader.buffer.data, bytes, "serialize"
   end
 end
