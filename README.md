@@ -23,7 +23,7 @@ Code:
 ```ruby
 loader = WebAssembly::WASMLoader.new
 mod = loader.load "understanding-text-format/add.wasm"
-pp mod
+pp mod.to_hash
 ```
 
 Output:
