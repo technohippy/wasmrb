@@ -1,5 +1,6 @@
 require "test-unit"
 require_relative "../../lib/wasm/wasmloader.rb"
+require_relative "../../lib/wasm/wasmserializer.rb"
 
 class WasmTest < Test::Unit::TestCase
   def setup
@@ -168,5 +169,12 @@ class WasmTest < Test::Unit::TestCase
 
     inst = mod.instantiate
     assert_equal 3, inst.exports.add(1, 2)
+  end
+
+  def test_serialize
+    mod = @loader.load "test/data/understanding-text-format/add.wasm"
+    serializer = WebAssembly::WASMSerializer.new
+    bytes = serializer.serialize mod
+    assert_equal @loader.buffer.data, bytes
   end
 end

@@ -154,6 +154,8 @@ module WebAssembly
 			0x03 => :global
 		}
 
+		attr_reader :buffer
+
 		def load filepath
 			@buffer = WASMBuffer.load filepath
 
