@@ -89,19 +89,18 @@ i32 = I32.new
 
 ####
 
-wasm =
-  mod {
-    func :f1, [:i32, :i32] => [:i32] {
-      i32.add arg(0), arg(1)
-      i32.add call(:f2)
-    }
-    
-    func :f2, [] => [:i32] {
-      i32.const 42
-    }
+wasm =  mod {
+          func :f1, [:i32, :i32] => [:i32] {
+            i32.add arg(0), arg(1)
+            i32.add call(:f2)
+          }
+          
+          func :f2, [] => [:i32] {
+            i32.const 42
+          }
 
-    export "add42", :f1
-  }
+          export "add42", :f1
+        }
 
 require "pp"
 pp wasm.to_hash
