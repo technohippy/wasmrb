@@ -73,11 +73,12 @@ module WebAssembly
     end
 
     def to_hash
-      {
+      h = {
         :section => Section.name_by_id(@id),
         :id => @id,
-        :size => @size,
       }
+      h[:size] = @size if @size
+      h
     end
   end
 
@@ -790,6 +791,10 @@ module WebAssembly
 
     attr_accessor :funcidx
 
+    def initialize funcidx=nil
+      @funcidx = funcidx
+    end
+
     def call context
       func = context.functions[@funcidx]
       func.call context
@@ -1296,6 +1301,10 @@ module WebAssembly
     TAG = 0x41
 
     attr_accessor :value
+
+    def initialize value=nil
+      @value = value
+    end
 
     def call context
       context.stack.push value
