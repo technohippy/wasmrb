@@ -10,7 +10,7 @@ How to Test
 ----
 
 ```
-$ ruby test/wasm/test.rb
+$ ruby test/run-test.rb
 ```
 
 How to Use
