@@ -11,10 +11,27 @@ class WASMSerializerTest < Test::Unit::TestCase
   # def teardown
   # end
 
-  def test_serialize
+  def bytes_to_string bytes
+    bytes = bytes.map do |b|
+      "#{if b < 16 then "0" else "" end}#{b.to_s(16)}"
+    end
+  end
+  private :bytes_to_string
+
+  def assert_bytes expected, actual
+    assert_equal bytes_to_string(expected), bytes_to_string(actual)
+  end
+
+  def test_add
     mod = @loader.load "test/data/understanding-text-format/add.wasm"
     bytes = @serializer.serialize mod
-    assert_equal @loader.buffer.data, bytes
+    assert_bytes @loader.buffer.data, bytes
+  end
+
+  def test_memory
+    mod = @loader.load "test/data/js-api-examples/memory.wasm"
+    bytes = @serializer.serialize mod
+    assert_bytes @loader.buffer.data, bytes
   end
 
   # {:magic=>[0, 97, 115, 109],

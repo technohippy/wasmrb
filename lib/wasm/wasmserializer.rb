@@ -8,6 +8,10 @@ module WebAssembly
 			:i64 => 0x7e,
 			:i32 => 0x7f,
 		}
+		REF_TYPES = {
+			:funcref => 0x70,
+			:externref => 0x6f,
+		}
 
 		def serialize mod
 			bytes = []	
@@ -22,14 +26,12 @@ module WebAssembly
 			bytes.push *mod.version
 			mod.sections.each do |section|
 				section_bytes = []
-				method_name = "serialize_#{Section.name_by_id section.id}_section"
+				method_name = "serialize_#{Section.name_by_id section.class::ID}_section"
 				send method_name, section_bytes, section
 
 				bytes.push section.id
 				bytes.push section_bytes.size
 				bytes.push *section_bytes
-				p section.class.name
-				p bytes.map {|b| b.to_s(16)}
 			end
 		end
 		
@@ -45,7 +47,10 @@ module WebAssembly
 		end
 		
 		def serialize_import_section bytes, section
-			raise StandardError.new("not implemented yet")
+			#serialize_vec bytes, section.imports, &serialize_import
+			serialize_vec bytes, section.imports do |bs, i|
+				serialize_import bs, i
+			end
 		end
 		
 		def serialize_function_section bytes, section
@@ -113,6 +118,69 @@ module WebAssembly
 			end
 		end
 
+		def serialize_import bytes, import
+			serialize_name bytes, import.mod
+			serialize_name bytes, import.name
+			case import.desc
+			when ImportTypeDesc
+				bytes.push 0x00
+				serialize_num import.desc.index
+			when ImportTableDesc
+				bytes.push 0x01
+				serialize_reftype bytes, import.desc.reftype
+				serialize_limits bytes, import.desc.limits
+			when ImportMemoryDesc
+				bytes.push 0x02
+				serialize_limits bytes, import.desc.limits
+			when ImportGlobalDesc
+				bytes.push 0x03
+				serialize_valtype bytes, import.desc.valtype
+				serialize_mut bytes, import.desc.mut
+			else
+				raise StandardError.new("invalid import desc: #{import.desc.class.name}")
+			end
+		end
+
+		def serialize_reftype bytes, reftype
+			case reftype
+			when :functype
+				bytes.push 0x70
+			when :externref
+				bytes.push 0x6f
+			else
+				raise StandardError.new("invalid reftype: #{import.desc.reftype}")
+			end
+		end
+
+		def serialize_limits bytes, limit
+			if limit.max
+				bytes.push 0x01
+				serialize_num bytes, limit.min
+				serialize_num bytes, limit.max
+			else
+				bytes.push 0x00
+				serialize_num bytes, limit.min
+			end
+		end
+
+		def serialize_valtype bytes, valtype
+			bytes.push({
+				:i32 => 0x7f,
+				:i64 => 0x7e,
+				:f32 => 0x7d,
+				:f64 => 0x7c,
+				:funref => 0x70,
+				:externref => 0x6f,
+			}[valtype])
+		end
+
+		def serialize_mut bytes, mut
+			bytes.push({
+				:const => 0x00,
+				:var => 0x01,
+			}[mut])
+		end
+
 		def serialize_export bytes, export
 			serialize_name bytes, export.name
 			bytes.push \
@@ -146,24 +214,93 @@ module WebAssembly
 		end
 
 		def serialize_locals bytes, locals
-			serialize_num locals.count
-			serialize_num locals.valtype # TODO
+			serialize_num bytes, locals.count
+			serialize_valtype bytes, locals.valtype
 		end
 
 		def serialize_instruction bytes, instr
-			case instr
-			when LocalGetInstruction
-				bytes.push LocalGetInstruction::TAG
-				serialize_num bytes, instr.index
-			when I32AddInstruction
-				bytes.push I32AddInstruction::TAG
+			bytes.push instr.class::TAG
+
+			name = Instruction.name_by_tag instr.class::TAG
+			method_name = "serialize_inst_#{name}"
+			send method_name, bytes, instr
+		end
+
+		def serialize_inst_local_get bytes, instr
+			serialize_num bytes, instr.index
+		end
+
+		def serialize_inst_local_set bytes, instr
+			serialize_num bytes, instr.index
+		end
+
+		def serialize_inst_i32_load bytes, instr
+			serialize_memarg bytes, instr.memarg
+		end
+
+		def serialize_memarg bytes, memarg
+			serialize_num bytes, memarg.align
+			serialize_num bytes, memarg.offset
+		end
+
+		def serialize_inst_i32_const bytes, instr
+			serialize_num bytes, instr.value
+		end
+
+		def serialize_inst_i32_add bytes, instr
+			# pass
+		end
+
+		def serialize_inst_i32_mul bytes, instr
+			# pass
+		end
+
+		def serialize_inst_i32_eq bytes, instr
+			# pass
+		end
+
+		def serialize_inst_block bytes, instr
+			serialize_blocktype bytes, instr.blocktype
+			instr.instructions.each do |i|
+				serialize_instruction bytes, i
 			end
+			bytes.push OP_END
+		end
+
+		def serialize_blocktype bytes, blocktype
+			if blocktype == 0x40
+				bytes.push 0x40
+			elsif NUM_TYPES.has_key? blocktype
+				bytes.push NUM_TYPES[blocktype]
+			elsif REF_TYPES.has_key? blocktype
+				bytes.push REF_TYPES[blocktype]
+			else
+				serialize_signed_num bytes, blocktype
+			end
+		end
+
+		# TODO: same as serialize_inst_block
+		def serialize_inst_loop bytes, instr
+			serialize_blocktype bytes, instr.blocktype
+			instr.instructions.each do |i|
+				serialize_instruction bytes, i
+			end
+			bytes.push OP_END
+		end
+
+		# TODO: same as br_if
+		def serialize_inst_br bytes, instr
+			serialize_num bytes, instr.labelidx
+		end
+
+		def serialize_inst_br_if bytes, instr
+			serialize_num bytes, instr.labelidx
 		end
 
 		#
 
-		# leb128
-		def serialize_num bytes, num
+		# https://en.wikipedia.org/wiki/LEB128
+		def serialize_leb128 bytes, num
 			bs = []
 			loop do
 				low = num & 0b01111111
@@ -177,6 +314,13 @@ module WebAssembly
 				end
 			end
 			bytes.push *bs
+		end
+
+		alias serialize_num serialize_leb128
+
+		# https://en.wikipedia.org/wiki/LEB128#Signed_LEB128
+		def serialize_signed_num bytes, num
+			raise StandardError.new("not yet implemented")
 		end
 
 		def serialize_name bytes, name

@@ -306,7 +306,7 @@ module WebAssembly
 				when 0
 					:const
 				when 1
-					:mut
+					:var
 				else
 					raise StandardError.new("invalid mut: #{type}")
 				end
