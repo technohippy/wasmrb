@@ -53,10 +53,6 @@
 
 # OPコード進捗
 
-- o : ok
-- . : at some level
-- x : not yet
-
 | op                  | load | save | exec |
 | ------------------- | ---- | ---- | ---- |
 | nop                 | o    | o    | o    |
