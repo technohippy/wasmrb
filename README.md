@@ -6,6 +6,13 @@ WASM Runner in Ruby language
 I'm developing this tool for a learning purpose.
 There must be many bugs and unimplemented specs.
 
+How to Test
+----
+
+```
+$ ruby test/wasm/test.rb
+```
+
 How to Use
 ---
 
@@ -102,13 +109,6 @@ Output:
 serializer = WebAssembly::WASMSerializer.new
 bytes = serializer.serialize mod
 File.binwrite "add.wasm", bytes.pack("C*")
-```
-
-How to Test
-----
-
-```
-$ ruby test/wasm/test.rb
 ```
 
 Sample Codes
