@@ -198,6 +198,8 @@ module WebAssembly
   class GlobalSection < Section
     ID = 6
 
+    attr_reader :globals
+
     def initialize
       @id = ID
       @globals = []

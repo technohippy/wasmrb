@@ -45,6 +45,17 @@ module WebAssembly
 				end
 			end
 
+			# global
+			global_section = @mod.global_section
+			if global_section
+				global_section.globals.each_with_index do |instrs, i|
+					instrs.each do |inst|
+						inst.call @context
+					end
+					@context.globals[i] = Context::Global.new(@context.stack.pop)
+				end
+			end
+
 			# export
 			export_section = @mod.export_section
 			if export_section
@@ -105,10 +116,11 @@ module WebAssembly
 			elem_section = @mod.element_section
 			if elem_section
 				elem_section.elements.each do |elem|
-					ctx = Context.new
-					elem.expression.each {|instr| instr.call ctx}
-					tblidx = ctx.stack.pop
+					elem.expression.each {|instr| instr.call @context}
+					tblidx = @context.stack.pop
+					@context.tables[tblidx] = [] unless @context.tables[tblidx] # TODO: ??
 					table = @context.tables[tblidx]
+
 					elem.funcidxs.each do |funcidx|
 						table.push @context.functions[funcidx]
 					end

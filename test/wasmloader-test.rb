@@ -125,4 +125,39 @@ class WASMLoaderTest < Test::Unit::TestCase
       assert true, "successfully an error occured."
     end
   end
+
+  def test_sobel
+    mod = @loader.load "test/data/wasm-sobel/change.wasm"
+
+    func = proc {}
+    global = WebAssembly::Context::Global.new 1
+    memory = []
+    table = []
+    inst = mod.instantiate({
+      :env => {
+        :DYNAMICTOP_PTR => global,
+        :STACKTOP => global,
+        :STACK_MAX => global,
+        :abort => func,
+        :enlargeMemory => func,
+        :getTotalMemory => func,
+        :abortOnCannotGrowMemory => func,
+        :_pthread_cleanup_pop => func,
+        :___lock => func,
+        :_abort => func,
+        :___setErrNo => func,
+        :___syscall6 => func,
+        :___syscall140 => func,
+        :_pthread_cleanup_push => func,
+        :_emscripten_memcpy_big => func,
+        :___syscall54 => func,
+        :___unlock => func,
+        :___syscall146 => func,
+        :memory => memory,
+        :table => table,
+        :memoryBase => global,
+        :tableBase => global,
+      }
+    })
+  end
 end
