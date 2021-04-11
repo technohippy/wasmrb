@@ -1,6 +1,6 @@
 require_relative "../lib/wasm/module.rb"
 
-####
+#### Define DSL
 
 $types = []
 $funcs = []
@@ -87,7 +87,7 @@ end
 
 i32 = I32.new
 
-####
+#### Use DSL
 
 wasm =  mod {
           func :f1, [:i32, :i32] => [:i32] {
