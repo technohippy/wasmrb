@@ -33,6 +33,7 @@
 - [ ] プロパティ名を仕様書に合わせる
 - [ ] ファイル分割
 - [ ] attr_accessorを使っている部分を一部attr_readerに
+- [ ] expr, expression, expressionsが混在してる
 
 ## リリース
 

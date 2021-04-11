@@ -1,7 +1,8 @@
 module WebAssembly
 	class WASMSerializer
 		# TODO: このあたり、loaderと共有できるように後で変更
-		OP_END = 0x0b
+		OP_THEN_END = 0x0b
+		OP_BLOCK_END = 0x0b
 		NUM_TYPES = {
 			:f64 => 0x7c,
 			:f32 => 0x7d,
@@ -36,13 +37,14 @@ module WebAssembly
 		end
 		
 		def serialize_custom_section bytes, section
-			raise StandardError.new("not implemented yet")
+			serialize_name bytes, section.name
+			bytes.push *section.bytes
 		end
 		
 		def serialize_type_section bytes, section
 			#serialize_vec bytes, section.functypes, &serialize_functype
-			serialize_vec bytes, section.functypes do |bs, i|
-				serialize_functype bs, i
+			serialize_vec bytes, section.functypes do |bs, f|
+				serialize_functype bs, f
 			end
 		end
 		
@@ -54,37 +56,52 @@ module WebAssembly
 		end
 		
 		def serialize_function_section bytes, section
-			#serialize_vec bytes, section.type_indices, &serialize_num
-			serialize_vec bytes, section.type_indices do |bs, i|
-				serialize_num bs, i
+			#serialize_vec bytes, section.type_indices, &serialize_int
+			serialize_vec bytes, section.type_indices do |bs, t|
+				serialize_int bs, t
 			end
 		end
 		
 		def serialize_table_section bytes, section
-			raise StandardError.new("not implemented yet")
+			#serialize_vec bytes, section.tabletypes, &serialize_tabletype
+			serialize_vec bytes, section.tabletypes do |bs, t|
+				serialize_tabletype bs, t
+			end
 		end
 		
 		def serialize_memory_section bytes, section
-			raise StandardError.new("not implemented yet")
+			#serialize_vec bytes, section.memtypes, &serialize_memtype
+			serialize_vec bytes, section.memtypes do |bs, m|
+				serialize_memtype bs, m
+			end
 		end
 		
 		def serialize_global_section bytes, section
-			raise StandardError.new("not implemented yet")
+			#serialize_vec bytes, section.globals, &serialize_global
+			serialize_vec bytes, section.globals do |bs, g|
+				serialize_global bs, g
+			end
 		end
 		
 		def serialize_export_section bytes, section
 			#serialize_vec bytes, section.exports, &serialize_export
-			serialize_vec bytes, section.exports do |bs, i|
-				serialize_export bs, i
+			serialize_vec bytes, section.exports do |bs, e|
+				serialize_export bs, e
 			end
 		end
 		
 		def serialize_start_section bytes, section
-			raise StandardError.new("not implemented yet")
+			#serialize_vec bytes, section.starts, &serialize_start
+			serialize_vec bytes, section.starts do |bs, s|
+				serialize_start bs, s
+			end
 		end
 		
 		def serialize_element_section bytes, section
-			raise StandardError.new("not implemented yet")
+			#serialize_vec bytes, section.elements, &serialize_start
+			serialize_vec bytes, section.elements do |bs, e|
+				serialize_element bs, e
+			end
 		end
 		
 		def serialize_code_section bytes, section
@@ -95,7 +112,10 @@ module WebAssembly
 		end
 		
 		def serialize_data_section bytes, section
-			raise StandardError.new("not implemented yet")
+			#serialize_vec bytes, section.data, &serialize_code
+			serialize_vec bytes, section.data do |bs, d|
+				serialize_data bs, d
+			end
 		end
 		
 		def serialize_datacount_section bytes, section
@@ -112,9 +132,9 @@ module WebAssembly
 
 		def serialize_resulttype bytes, results
 			result_tags = results.map{|r| NUM_TYPES[r]}
-			#serialize_vec bytes, result_tags, &serialize_num
+			#serialize_vec bytes, result_tags, &serialize_int
 			serialize_vec bytes, result_tags do |bs, i|
-				serialize_num bs, i
+				serialize_int bs, i
 			end
 		end
 
@@ -124,7 +144,8 @@ module WebAssembly
 			case import.desc
 			when ImportTypeDesc
 				bytes.push 0x00
-				serialize_num import.desc.index
+				typeidx = import.desc.index
+				serialize_int bytes, typeidx.index
 			when ImportTableDesc
 				bytes.push 0x01
 				serialize_reftype bytes, import.desc.reftype
@@ -134,8 +155,9 @@ module WebAssembly
 				serialize_limits bytes, import.desc.limits
 			when ImportGlobalDesc
 				bytes.push 0x03
-				serialize_valtype bytes, import.desc.valtype
-				serialize_mut bytes, import.desc.mut
+				globaltype = import.desc.globaltype
+				serialize_valtype bytes, globaltype.valtype
+				serialize_mut bytes, globaltype.mut
 			else
 				raise StandardError.new("invalid import desc: #{import.desc.class.name}")
 			end
@@ -143,23 +165,23 @@ module WebAssembly
 
 		def serialize_reftype bytes, reftype
 			case reftype
-			when :functype
+			when :funcref
 				bytes.push 0x70
 			when :externref
 				bytes.push 0x6f
 			else
-				raise StandardError.new("invalid reftype: #{import.desc.reftype}")
+				raise StandardError.new("invalid reftype: #{reftype}")
 			end
 		end
 
 		def serialize_limits bytes, limit
 			if limit.max
 				bytes.push 0x01
-				serialize_num bytes, limit.min
-				serialize_num bytes, limit.max
+				serialize_int bytes, limit.min
+				serialize_int bytes, limit.max
 			else
 				bytes.push 0x00
-				serialize_num bytes, limit.min
+				serialize_int bytes, limit.min
 			end
 		end
 
@@ -181,6 +203,32 @@ module WebAssembly
 			}[mut])
 		end
 
+		def serialize_tabletype bytes, tabletype
+			serialize_reftype bytes, tabletype.reftype
+			serialize_limits bytes, tabletype.limits
+		end
+
+		def serialize_memtype bytes, memtype
+			serialize_limits bytes, memtype.limits
+		end
+
+		def serialize_global bytes, global
+			serialize_globaltype bytes, global.globaltype
+			serialize_expression bytes, global.expr
+		end
+
+		def serialize_expression bytes, expr
+			expr.each do |instr|
+				serialize_instruction bytes, instr
+			end
+			bytes.push OP_BLOCK_END
+		end
+
+		def serialize_globaltype bytes, globaltype
+			serialize_valtype bytes, globaltype.valtype
+			serialize_mut bytes, globaltype.mut
+		end
+
 		def serialize_export bytes, export
 			serialize_name bytes, export.name
 			bytes.push \
@@ -196,7 +244,38 @@ module WebAssembly
 				else
 					raise StandardError.new("invalid export desc: #{export.desc.class.name}")
 				end
-			serialize_num bytes, export.desc.index
+			serialize_int bytes, export.desc.index
+		end
+
+		def serialize_start bytes, start
+			serialize_int bytes, start.funcidx
+		end
+
+		def serialize_element bytes, element
+			tag = element.tag
+			case tag
+			when 0b000
+				serialize_expression bytes, element.expression
+				serialize_vec bytes, element.funcidxs do |bs, f|
+					serialize_int bs, f
+				end
+			when 0b001
+				raise StandardError.new("not yet implemented: #{tag}")
+			when 0b010
+				raise StandardError.new("not yet implemented: #{tag}")
+			when 0b011
+				raise StandardError.new("not yet implemented: #{tag}")
+			when 0b100
+				raise StandardError.new("not yet implemented: #{tag}")
+			when 0b101
+				raise StandardError.new("not yet implemented: #{tag}")
+			when 0b110
+				raise StandardError.new("not yet implemented: #{tag}")
+			when 0b111
+				raise StandardError.new("not yet implemented: #{tag}")
+			else
+				raise StandardError.new("invalid element: #{tag}")
+			end
 		end
 
 		def serialize_code bytes, code
@@ -207,14 +286,14 @@ module WebAssembly
 			code.expressions.each do |instr|
 				serialize_instruction code_body_bytes, instr
 			end
-			code_body_bytes.push OP_END
+			code_body_bytes.push OP_BLOCK_END
 			
-			serialize_num bytes, code_body_bytes.size
+			serialize_int bytes, code_body_bytes.size
 			bytes.push *code_body_bytes
 		end
 
 		def serialize_locals bytes, locals
-			serialize_num bytes, locals.count
+			serialize_int bytes, locals.count
 			serialize_valtype bytes, locals.valtype
 		end
 
@@ -227,11 +306,23 @@ module WebAssembly
 		end
 
 		def serialize_inst_local_get bytes, instr
-			serialize_num bytes, instr.index
+			serialize_int bytes, instr.index
 		end
 
 		def serialize_inst_local_set bytes, instr
-			serialize_num bytes, instr.index
+			serialize_int bytes, instr.index
+		end
+
+		def serialize_inst_local_tee bytes, instr
+			serialize_int bytes, instr.index
+		end
+
+		def serialize_inst_global_get bytes, instr
+			serialize_int bytes, instr.index
+		end
+
+		def serialize_inst_global_set bytes, instr
+			serialize_int bytes, instr.index
 		end
 
 		def serialize_inst_i32_load bytes, instr
@@ -239,12 +330,24 @@ module WebAssembly
 		end
 
 		def serialize_memarg bytes, memarg
-			serialize_num bytes, memarg.align
-			serialize_num bytes, memarg.offset
+			serialize_int bytes, memarg.align
+			serialize_int bytes, memarg.offset
 		end
 
 		def serialize_inst_i32_const bytes, instr
-			serialize_num bytes, instr.value
+			serialize_int bytes, instr.value
+		end
+
+		def serialize_inst_i32_eqz bytes, instr
+			# pass
+		end
+
+		def serialize_inst_i32_eq bytes, instr
+			# pass
+		end
+
+		def serialize_inst_i32_gts bytes, instr
+			# pass
 		end
 
 		def serialize_inst_i32_add bytes, instr
@@ -255,7 +358,7 @@ module WebAssembly
 			# pass
 		end
 
-		def serialize_inst_i32_eq bytes, instr
+		def serialize_inst_i32_and bytes, instr
 			# pass
 		end
 
@@ -264,7 +367,7 @@ module WebAssembly
 			instr.instructions.each do |i|
 				serialize_instruction bytes, i
 			end
-			bytes.push OP_END
+			bytes.push OP_BLOCK_END
 		end
 
 		def serialize_blocktype bytes, blocktype
@@ -285,16 +388,54 @@ module WebAssembly
 			instr.instructions.each do |i|
 				serialize_instruction bytes, i
 			end
-			bytes.push OP_END
+			bytes.push OP_BLOCK_END
+		end
+
+		def serialize_inst_if bytes, instr
+			serialize_blocktype bytes, instr.blocktype
+			instr.then_instructions.each do |i|
+				serialize_instruction bytes, i
+			end
+			if instr.else_instructions
+				bytes.push OP_THEN_END
+				instr.else_instructions.each do |i|
+					serialize_instruction bytes, i
+				end
+			end
+			bytes.push OP_BLOCK_END
 		end
 
 		# TODO: same as br_if
 		def serialize_inst_br bytes, instr
-			serialize_num bytes, instr.labelidx
+			serialize_int bytes, instr.labelidx
 		end
 
 		def serialize_inst_br_if bytes, instr
-			serialize_num bytes, instr.labelidx
+			serialize_int bytes, instr.labelidx
+		end
+
+		def serialize_inst_return bytes, instr
+			# pass
+		end
+
+		def serialize_data bytes, data
+			if data.memidx 
+				bytes.push 0x02
+			elsif data.expr
+				bytes.push 0x00
+			else 
+				bytes.push 0x01
+			end
+
+			if data.memidx
+				serialize_int bytes, data.memidx
+			end
+			if data.expressions
+				serialize_expression data.expressions
+			end
+			serialize_vec bytes, data.bytes do |bs, b|
+				bytes.push b
+			end
 		end
 
 		#
@@ -316,7 +457,7 @@ module WebAssembly
 			bytes.push *bs
 		end
 
-		alias serialize_num serialize_leb128
+		alias serialize_int serialize_leb128
 
 		# https://en.wikipedia.org/wiki/LEB128#Signed_LEB128
 		def serialize_signed_num bytes, num
@@ -331,7 +472,7 @@ module WebAssembly
 		end
 
 		def serialize_vec bytes, items, &serialize
-			serialize_num bytes, items.size
+			serialize_int bytes, items.size
 			items.each do |item|
 				serialize.call bytes, item
 			end

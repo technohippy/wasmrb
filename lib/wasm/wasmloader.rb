@@ -137,8 +137,8 @@ module WebAssembly
 	end
 
 	class WASMLoader
-		OP_END = 0x0b
-		OP_ELSE = 0x05
+		OP_BLOCK_END = 0x0b
+		OP_THEN_END = 0x05
 		NUM_TYPES = {
 			0x7c => :f64,
 			0x7d => :f32,
@@ -288,7 +288,7 @@ module WebAssembly
 
 		def read_table_import
 			desc = ImportTableDesc.new
-			desc.reftype = @buffer.read_int
+			desc.reftype = REF_TYPES[@buffer.read_int]
 			desc.limits = @buffer.read_limits
 			desc
 		end
@@ -364,6 +364,7 @@ module WebAssembly
 			global = Global.new
 			global.globaltype = read_globaltype
 			global.expr = read_expressions
+			global
 		end
 
 		def read_export_section
@@ -416,6 +417,8 @@ module WebAssembly
 		def read_element
 			element = Element.new
 			tag = @buffer.read_byte
+			element.tag = tag
+
 			case tag
 			when 0b000
 				element.expression = read_expressions
@@ -471,7 +474,7 @@ module WebAssembly
 
 		def read_expressions
 			_, instructions = read_instructions do |t|
-				t == OP_END
+				t == OP_BLOCK_END
 			end
 			instructions
 		end
@@ -524,12 +527,12 @@ module WebAssembly
 			inst.blocktype = read_blocktype
 
 			end_tag, then_exprs = read_instructions do |t|
-				t == OP_END || t == OP_ELSE
+				t == OP_BLOCK_END || t == OP_THEN_END
 			end
 			inst.then_instructions = then_exprs
-			if end_tag == OP_ELSE
+			if end_tag == OP_THEN_END
 				_, else_exprs = read_instructions do |t|
-					t == OP_END
+					t == OP_BLOCK_END
 				end
 				inst.else_instructions = else_exprs
 			end

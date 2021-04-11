@@ -179,6 +179,8 @@ module WebAssembly
   class MemorySection < Section
     ID = 5
 
+    attr_reader :memtypes
+
     def initialize
       @id = ID
       @memtypes = []
@@ -239,6 +241,8 @@ module WebAssembly
 
   class StartSection < Section
     ID = 8
+
+    attr_reader :starts
 
     def initialize
       @id = ID
@@ -553,7 +557,7 @@ module WebAssembly
   end
 
   class Element
-    attr_accessor :funcidxs, :expression
+    attr_accessor :tag, :funcidxs, :expression
 
     def initialize
       @funcidxs = []
@@ -980,6 +984,7 @@ module WebAssembly
     attr_accessor :index
 
     def call context
+      context.globals[@index] = Context::Global.new(0) unless context.globals[@index] # TODO
       context.globals[@index].value = context.stack.pop
     end
 

@@ -48,8 +48,8 @@ module WebAssembly
 			# global
 			global_section = @mod.global_section
 			if global_section
-				global_section.globals.each_with_index do |instrs, i|
-					instrs.each do |inst|
+				global_section.globals.each_with_index do |global, i|
+					global.expr.each do |inst|
 						inst.call @context
 					end
 					@context.globals[i] = Context::Global.new(@context.stack.pop)

@@ -159,5 +159,9 @@ class WASMLoaderTest < Test::Unit::TestCase
         :tableBase => global,
       }
     })
+
+    assert_nothing_raised do
+      inst.exports.runPostSets()
+    end
   end
 end
