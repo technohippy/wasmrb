@@ -108,5 +108,5 @@ inst = wasm.instantiate
 puts inst.exports.add42(1, 2) # 1+2+42 = 45
 
 # serializer = WebAssembly::WASMSerializer.new
-# bytes = serializer.serialize mod
+# bytes = serializer.serialize wasm
 # File.binwrite "add42.wasm", bytes.pack("C*")  # add42.wasm is available from JS file
