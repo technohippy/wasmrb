@@ -34,6 +34,8 @@ class WASMSerializerTest < Test::Unit::TestCase
     assert_bytes @loader.buffer.data, bytes
   end
 
+=begin
+  # time consuming
   def test_sobel
     mod = @loader.load "test/data/wasm-sobel/change.wasm"
     bytes = @serializer.serialize mod
@@ -50,6 +52,7 @@ class WASMSerializerTest < Test::Unit::TestCase
     mod2.sections.each {|s| s.size = 0}
     assert_equal mod.to_hash, mod2.to_hash
   end
+=end
 
   # {:magic=>[0, 97, 115, 109],
   # :version=>[1, 0, 0, 0],

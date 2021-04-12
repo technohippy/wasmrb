@@ -554,6 +554,15 @@ module WebAssembly
 			ReturnInstruction.new
 		end
 
+		def read_inst_br_table
+			inst = BrTableInstruction.new
+			@buffer.read_vec do
+				inst.add_labelidx @buffer.read_int
+			end
+			inst.labelidx = @buffer.read_int
+			inst
+		end
+
 		{
 			"unreachable" => [],
 			"nop" => [],

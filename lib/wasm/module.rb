@@ -796,6 +796,21 @@ module WebAssembly
 
     attr_accessor :labelidxs, :labelidx
 
+    def initialize
+      @labelidxs = []
+    end
+
+    def add_labelidx labelidx
+      @labelidxs.push labelidx
+    end
+
+    def call context
+      table = [*@labelidxs]
+      table.push @labelidx
+      index = context.stack.pop
+      context.branch = table[index]
+    end
+
     def to_hash
       {
         :name => "br_table",

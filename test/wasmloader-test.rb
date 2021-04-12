@@ -23,6 +23,14 @@ class WASMLoaderTest < Test::Unit::TestCase
     assert_equal 0, inst.exports.less10(15)
   end
 
+  def test_br_table
+    mod = @loader.load "test/data/basic/br_table.wasm"
+    inst = mod.instantiate
+    assert_equal 1, inst.exports.switch(0)
+    assert_equal 2, inst.exports.switch(1)
+    assert_equal 3, inst.exports.switch(2)
+  end
+
   def test_return
     mod = @loader.load "test/data/basic/return.wasm"
     inst = mod.instantiate
@@ -146,6 +154,8 @@ class WASMLoaderTest < Test::Unit::TestCase
     end
   end
 
+=begin
+  # time consuming
   def test_sobel
     mod = @loader.load "test/data/wasm-sobel/change.wasm"
 
@@ -184,4 +194,5 @@ class WASMLoaderTest < Test::Unit::TestCase
       inst.exports.runPostSets()
     end
   end
+=end
 end
