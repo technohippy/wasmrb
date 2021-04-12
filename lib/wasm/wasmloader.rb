@@ -209,7 +209,6 @@ module WebAssembly
 		def read_section
 			id, size = read_section_header
 			name = Section.name_by_id(id)
-			p :id, id, :size, size, :name, name
 			@buffer.viewport size do
 				method_name = "read_#{name}_section"
 				p "SECTION: #{method_name}" if $DEBUG

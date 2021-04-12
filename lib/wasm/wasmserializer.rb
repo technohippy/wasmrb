@@ -1,8 +1,8 @@
 module WebAssembly
 	class WASMSerializer
 		# TODO: このあたり、loaderと共有できるように後で変更
-		OP_THEN_END = 0x0b
 		OP_BLOCK_END = 0x0b
+		OP_THEN_END = 0x05
 		NUM_TYPES = {
 			:f64 => 0x7c,
 			:f32 => 0x7d,

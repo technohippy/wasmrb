@@ -213,7 +213,7 @@ module WebAssembly
 
     def to_hash
       super.to_hash.merge({
-        :globals => @globals
+        :globals => @globals.map {|g| g.to_hash}
       })
     end
   end
@@ -452,6 +452,13 @@ module WebAssembly
 
   class Global
     attr_accessor :globaltype, :expr
+
+    def to_hash
+      h = {
+        :globaltype => @globaltype.to_hash,
+        :expression => @expr.map {|e| e.to_hash}
+      }
+    end
   end
 
   class GlobalType

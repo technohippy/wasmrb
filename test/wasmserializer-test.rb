@@ -44,8 +44,11 @@ class WASMSerializerTest < Test::Unit::TestCase
 
     buffer = WebAssembly::WASMBuffer.new bytes
     mod2 = @loader.load buffer
-    p mod2.to_hash
-    #assert_equal mod.to_hash, mod2.to_hash
+    # because the original wasm has paddings for numbers
+    # section size may deffer.
+    mod.sections.each {|s| s.size = 0}
+    mod2.sections.each {|s| s.size = 0}
+    assert_equal mod.to_hash, mod2.to_hash
   end
 
   # {:magic=>[0, 97, 115, 109],
