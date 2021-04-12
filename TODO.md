@@ -57,14 +57,14 @@
 | op                  | load | save | exec |
 | ------------------- | ---- | ---- | ---- |
 | nop                 | o    | o    | o    |
-| unreachable         | o    | o    |      |
+| unreachable         | o    | o    | o    |
 | block               | o    | o    | o    |
 | loop                | o    | o    | o    |
 | if                  | o    | o    | o    |
 | br                  | o    | o    | o    |
 | br_if               | o    | o    | o    |
 | br_table            | o    | o    |      |
-| return              | o    | o    |      |
+| return              | o    | o    | o    |
 | call                | o    | o    | o    |
 | call_indirect       | o    | o    | o    |
 | i32.const           | o    | o    | o    |

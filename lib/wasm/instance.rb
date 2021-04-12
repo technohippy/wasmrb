@@ -191,7 +191,7 @@ module WebAssembly
 		end
 
 		attr_reader :stack, :tables, :memories, :functions, :globals, :locals
-		attr_accessor :branch
+		attr_accessor :branch, :depth
 
 		def initialize
 			@stack = []
@@ -201,6 +201,7 @@ module WebAssembly
 			@globals = []
 			@locals = []
 			@branch = -1
+			@depth = 0
 		end
 
 		def peep_stack

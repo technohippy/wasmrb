@@ -23,6 +23,12 @@ class WASMLoaderTest < Test::Unit::TestCase
     assert_equal 0, inst.exports.less10(15)
   end
 
+  def test_return
+    mod = @loader.load "test/data/basic/return.wasm"
+    inst = mod.instantiate
+    assert_equal 1, inst.exports.return1()
+  end
+
   def test_fail
     mod = @loader.load "test/data/js-api-examples/fail.wasm"
     inst = mod.instantiate

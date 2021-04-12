@@ -673,6 +673,7 @@ module WebAssembly
     def call context
       br = false
       loop do
+        context.depth += 1
         context.branch = -1
         @instructions.each do |instr|
           instr.call context
@@ -682,6 +683,7 @@ module WebAssembly
             break
           end
         end
+        context.depth -= 1
         break if br
       end
     end
@@ -702,6 +704,7 @@ module WebAssembly
     def call context
       br = false
       loop do
+        context.depth += 1
         context.branch = -1
         @instructions.each do |instr|
           instr.call context
@@ -711,6 +714,7 @@ module WebAssembly
             break
           end
         end
+        context.depth -= 1
         break if br
       end
     end
@@ -803,6 +807,10 @@ module WebAssembly
 
   class ReturnInstruction < Instruction
     TAG = 0x0f
+
+    def call context
+      context.branch = context.depth
+    end
 
     def to_hash
       {
