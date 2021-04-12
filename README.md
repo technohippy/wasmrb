@@ -67,6 +67,26 @@ Output:
 3
 ```
 
+Code (with import_object):
+
+```ruby
+import_object = {
+  :console => {
+    :log => lambda {|msg| puts msg}
+  }
+}
+loader = WebAssembly::WASMLoader.new
+mod = loader.load "understanding-text-format/logger.wasm"
+inst = mod.instantiate import_object
+inst.exports.logIt()
+```
+
+Output:
+
+```
+13
+```
+
 ### How to Construct Module
 
 Code:
