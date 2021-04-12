@@ -63,7 +63,7 @@
 | if                  | o    | o    | o    |
 | br                  | o    | o    | o    |
 | br_if               | o    | o    | o    |
-| br_table            | o    | o    |      |
+| br_table            | o    | o    | o    |
 | return              | o    | o    | o    |
 | call                | o    | o    | o    |
 | call_indirect       | o    | o    | o    |

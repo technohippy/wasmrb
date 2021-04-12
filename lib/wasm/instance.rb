@@ -146,6 +146,9 @@ module WebAssembly
 			end
 			@code.expressions.each do |instr|
 				instr.call context
+				if 0 <= context.branch
+					break
+				end
 			end
 			context.stack[context.stack.length-1]
 		end
