@@ -1,3 +1,4 @@
+require "pp"
 require "test-unit"
 require_relative "../lib/wasm/wasmloader.rb"
 
@@ -8,6 +9,12 @@ class WASMLoaderTest < Test::Unit::TestCase
 
   # def teardown
   # end
+
+  def test_loop
+    mod = @loader.load "test/data/basic/loop.wasm"
+    inst = mod.instantiate
+    assert_equal 315, inst.exports.doubleloop()
+  end
 
   def test_fail
     mod = @loader.load "test/data/js-api-examples/fail.wasm"
