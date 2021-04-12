@@ -203,7 +203,7 @@ module WebAssembly
 			@branch = -1
 		end
 
-		def peek_stack
+		def peep_stack
 			@stack[@stack.size-1]
 		end
 

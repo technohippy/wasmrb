@@ -728,6 +728,18 @@ module WebAssembly
 
     attr_accessor :blocktype, :then_instructions, :else_instructions
 
+    def call context
+      if context.stack.pop != 0
+        @then_instructions.each do |instr|
+          instr.call context
+        end
+      elsif not @else_instructions.nil?
+        @else_instructions.each do |instr|
+          instr.call context
+        end
+      end
+    end
+
     def to_hash
       h = {
         :name => "if",
@@ -957,7 +969,7 @@ module WebAssembly
     attr_accessor :index
 
     def call context
-      context.locals[index] = context.peek_stack
+      context.locals[index] = context.peep_stack
     end
 
     def to_hash
