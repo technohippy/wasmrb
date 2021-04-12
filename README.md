@@ -70,13 +70,14 @@ Output:
 Code (with import_object):
 
 ```ruby
+loader = WebAssembly::WASMLoader.new
+mod = loader.load "understanding-text-format/logger.wasm"
+
 import_object = {
   :console => {
     :log => lambda {|msg| puts msg}
   }
 }
-loader = WebAssembly::WASMLoader.new
-mod = loader.load "understanding-text-format/logger.wasm"
 inst = mod.instantiate import_object
 inst.exports.logIt()
 ```
