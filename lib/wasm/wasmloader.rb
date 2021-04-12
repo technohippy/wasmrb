@@ -10,10 +10,15 @@ module WebAssembly
 			buffer
 		end
 
-		def initialize
+		def initialize data=nil
 			@cursor = 0
-			@sizes = [0]
-			@data = []
+			if data
+				@sizes = [data.size]
+				@data = data
+			else
+				@sizes = [0]
+				@data = []
+			end
 		end
 
 		def load filepath
@@ -164,8 +169,14 @@ module WebAssembly
 
 		attr_reader :buffer
 
-		def load filepath
-			@buffer = WASMBuffer.load filepath
+		def load filepath_or_buffer
+			@buffer =
+				case filepath_or_buffer
+				when String
+					WASMBuffer.load filepath_or_buffer
+				else
+					filepath_or_buffer
+				end
 
 			mod = Module.new
 			mod.magic = read_magic
@@ -198,6 +209,7 @@ module WebAssembly
 		def read_section
 			id, size = read_section_header
 			name = Section.name_by_id(id)
+			p :id, id, :size, size, :name, name
 			@buffer.viewport size do
 				method_name = "read_#{name}_section"
 				p "SECTION: #{method_name}" if $DEBUG

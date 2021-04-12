@@ -31,7 +31,7 @@ module WebAssembly
 				send method_name, section_bytes, section
 
 				bytes.push section.id
-				bytes.push section_bytes.size
+				serialize_int bytes, section_bytes.size
 				bytes.push *section_bytes
 			end
 		end
@@ -253,6 +253,7 @@ module WebAssembly
 
 		def serialize_element bytes, element
 			tag = element.tag
+			serialize_int bytes, tag
 			case tag
 			when 0b000
 				serialize_expression bytes, element.expression
@@ -303,63 +304,6 @@ module WebAssembly
 			name = Instruction.name_by_tag instr.class::TAG
 			method_name = "serialize_inst_#{name}"
 			send method_name, bytes, instr
-		end
-
-		def serialize_inst_local_get bytes, instr
-			serialize_int bytes, instr.index
-		end
-
-		def serialize_inst_local_set bytes, instr
-			serialize_int bytes, instr.index
-		end
-
-		def serialize_inst_local_tee bytes, instr
-			serialize_int bytes, instr.index
-		end
-
-		def serialize_inst_global_get bytes, instr
-			serialize_int bytes, instr.index
-		end
-
-		def serialize_inst_global_set bytes, instr
-			serialize_int bytes, instr.index
-		end
-
-		def serialize_inst_i32_load bytes, instr
-			serialize_memarg bytes, instr.memarg
-		end
-
-		def serialize_memarg bytes, memarg
-			serialize_int bytes, memarg.align
-			serialize_int bytes, memarg.offset
-		end
-
-		def serialize_inst_i32_const bytes, instr
-			serialize_int bytes, instr.value
-		end
-
-		def serialize_inst_i32_eqz bytes, instr
-			# pass
-		end
-
-		def serialize_inst_i32_eq bytes, instr
-			# pass
-		end
-
-		def serialize_inst_i32_gts bytes, instr
-			# pass
-		end
-
-		def serialize_inst_i32_add bytes, instr
-			# pass
-		end
-
-		def serialize_inst_i32_mul bytes, instr
-			# pass
-		end
-
-		def serialize_inst_i32_and bytes, instr
-			# pass
 		end
 
 		def serialize_inst_block bytes, instr
@@ -418,10 +362,109 @@ module WebAssembly
 			# pass
 		end
 
+		{
+			"unreachable" => [],
+			"nop" => [],
+			"br" => ["labelidx"],
+			"br_if" => ["labelidx"],
+			"call" => ["funcidx"],
+			"call_indirect" => ["typeidx", "tableidx"],
+			"ref_null" => ["reftype"],
+			"ref_is_null" => [],
+			"ref_func" => ["funcidx"],
+			"drop" => [],
+			"select" => [],
+			#"select_types" => [],
+			"local_get" => ["index"],
+			"local_set" => ["index"],
+			"local_tee" => ["index"],
+			"global_get" => ["index"],
+			"global_set" => ["index"],
+			"table_get" => ["tableidx"],
+			"table_set" => ["tableidx"],
+			"table_init" => ["elemidx", "tableidx"],
+			"elem_drop" => ["elemidx"],
+			"table_copy" => ["tableidx1", "tableidx2"],
+			"table_grow" => ["tableidx"],
+			"table_size" => ["tableidx"],
+			"table_fill" => ["tableidx"],
+			"i32_load" => {"memarg" => "serialize_memarg"},
+			"i32_load8s" => {"memarg" => "serialize_memarg"},
+			"i32_load8u" => {"memarg" => "serialize_memarg"},
+			"i32_load16s" => {"memarg" => "serialize_memarg"},
+			"i32_load16u" => {"memarg" => "serialize_memarg"},
+			"i32_store" => {"memarg" => "serialize_memarg"},
+			"i32_store8" => {"memarg" => "serialize_memarg"},
+			"i32_store16" => {"memarg" => "serialize_memarg"},
+			"memory_size" => [],
+			"memory_grow" => [],
+			"memory_init" => ["dataidx"],
+			"data_drop" => ["dataidx"],
+			"memory_copy" => [],
+			"memory_fill" => [],
+			"i32_const" => ["value"],
+			"i32_eqz" => [],
+			"i32_eq" => [],
+			"i32_ne" => [],
+			"i32_lts" => [],
+			"i32_ltu" => [],
+			"i32_gts" => [],
+			"i32_gtu" => [],
+			"i32_les" => [],
+			"i32_leu" => [],
+			"i32_ges" => [],
+			"i32_geu" => [],
+			"i32_clz" => [],
+			"i32_ctz" => [],
+			"i32_popcnt" => [],
+			"i32_add" => [],
+			"i32_sub" => [],
+			"i32_mul" => [],
+			"i32_divs" => [],
+			"i32_divu" => [],
+			"i32_rems" => [],
+			"i32_remu" => [],
+			"i32_and" => [],
+			"i32_or" => [],
+			"i32_xor" => [],
+			"i32_shl" => [],
+			"i32_shrs" => [],
+			"i32_shru" => [],
+			"i32_rotl" => [],
+			"i32_rotr" => [],
+			"i32_wrap_i64" => [],
+			"i32_trunc_f32s" => [],
+			"i32_trunc_f32u" => [],
+			"i32_trunc_f64s" => [],
+			"i32_trunc_f64u" => [],
+
+			"i64_load" => {"memarg" => "serialize_memarg"},
+			"i64_store" => {"memarg" => "serialize_memarg"},
+			"f64_sqrt" => [],
+			"f64_convert_i32s" => [],
+		}.each do |name, props|
+			define_method "serialize_inst_#{name}" do |bytes, instr|
+				if props.instance_of? Array
+					props.each do |prop|
+						serialize_int bytes, instr.send(prop)
+					end
+				else
+					props.each do |prop, serializer|
+						send serializer, bytes, instr.send(prop)
+					end
+				end
+			end
+		end
+
+		def serialize_memarg bytes, memarg
+			serialize_int bytes, memarg.align
+			serialize_int bytes, memarg.offset
+		end
+
 		def serialize_data bytes, data
 			if data.memidx 
 				bytes.push 0x02
-			elsif data.expr
+			elsif data.expressions
 				bytes.push 0x00
 			else 
 				bytes.push 0x01
@@ -431,7 +474,7 @@ module WebAssembly
 				serialize_int bytes, data.memidx
 			end
 			if data.expressions
-				serialize_expression data.expressions
+				serialize_expression bytes, data.expressions
 			end
 			serialize_vec bytes, data.bytes do |bs, b|
 				bytes.push b

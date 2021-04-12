@@ -57,38 +57,38 @@
 | op                  | load | save | exec |
 | ------------------- | ---- | ---- | ---- |
 | nop                 | o    | o    | o    |
-| unreachable         | o    |      |      |
+| unreachable         | o    | o    |      |
 | block               | o    | o    | o    |
 | loop                | o    | o    | o    |
-| if                  | o    |      |      |
-| br                  | o    |      | o    |
+| if                  | o    | o    | o    |
+| br                  | o    | o    | o    |
 | br_if               | o    | o    | o    |
-| br_table            | o    |      |      |
-| return              | o    |      |      |
-| call                | o    |      | o    |
-| call_indirect       | o    |      | o    |
+| br_table            | o    | o    |      |
+| return              | o    | o    |      |
+| call                | o    | o    | o    |
+| call_indirect       | o    | o    | o    |
 | i32.const           | o    | o    | o    |
 | f32.const           |      |      |      |
 | i64.const           |      |      |      |
 | f64.const           |      |      |      |
-| i32.clz             | o    |      |      |
-| i32.ctz             | o    |      |      |
-| i32.popcnt          | o    |      |      |
+| i32.clz             | o    | o    |      |
+| i32.ctz             | o    | o    |      |
+| i32.popcnt          | o    | o    |      |
 | i32.add             | o    | o    | o    |
-| i32.sub             | o    |      | o    |
+| i32.sub             | o    | o    | o    |
 | i32.mul             | o    | o    | o    |
-| i32.div_s           | o    |      | o    |
-| i32.div_u           | o    |      | o    |
-| i32.rem_s           | o    |      |      |
-| i32.rem_u           | o    |      |      |
-| i32.and             | o    |      | o    |
-| i32.or              | o    |      | o    |
-| i32.xor             | o    |      | o    |
-| i32.shl             | o    |      |      |
-| i32.shr_s           | o    |      |      |
-| i32.shr_u           | o    |      |      |
-| i32.rotl            | o    |      |      |
-| i32.rotr            | o    |      |      |
+| i32.div_s           | o    | o    | o    |
+| i32.div_u           | o    | o    | o    |
+| i32.rem_s           | o    | o    |      |
+| i32.rem_u           | o    | o    |      |
+| i32.and             | o    | o    | o    |
+| i32.or              | o    | o    | o    |
+| i32.xor             | o    | o    | o    |
+| i32.shl             | o    | o    |      |
+| i32.shr_s           | o    | o    |      |
+| i32.shr_u           | o    | o    |      |
+| i32.rotl            | o    | o    |      |
+| i32.rotr            | o    | o    |      |
 | i64.clz             |      |      |      |
 | i64.ctz             |      |      |      |
 | i64.popcnt          |      |      |      |
@@ -135,17 +135,17 @@
 | f64.min             |      |      |      |
 | f64.max             |      |      |      |
 | f64.copysign        |      |      |      |
-| i32.eqz             | o    |      | o    |
+| i32.eqz             | o    | o    | o    |
 | i32.eq              | o    | o    | o    |
-| i32.ne              | o    |      | o    |
-| i32.lt_s            | o    |      | o    |
-| i32.lt_u            | o    |      | o    |
-| i32.gt_s            | o    |      | o    |
-| i32.gt_u            | o    |      | o    |
-| i32.le_s            | o    |      | o    |
-| i32.le_u            | o    |      | o    |
-| i32.ge_s            | o    |      | o    |
-| i32.ge_u            | o    |      | o    |
+| i32.ne              | o    | o    | o    |
+| i32.lt_s            | o    | o    | o    |
+| i32.lt_u            | o    | o    | o    |
+| i32.gt_s            | o    | o    | o    |
+| i32.gt_u            | o    | o    | o    |
+| i32.le_s            | o    | o    | o    |
+| i32.le_u            | o    | o    | o    |
+| i32.ge_s            | o    | o    | o    |
+| i32.ge_u            | o    | o    | o    |
 | f32.eq              |      |      |      |
 | f32.ne              |      |      |      |
 | f32.lt              |      |      |      |
@@ -169,32 +169,32 @@
 | f64.gt              |      |      |      |
 | f64.le              |      |      |      |
 | f64.ge              |      |      |      |
-| ref.null            | o    |      |      |
-| ref.is_null         | o    |      |      |
-| ref.func            | o    |      |      |
-| drop                | o    |      |      |
-| select              | o    |      |      |
+| ref.null            | o    | o    |      |
+| ref.is_null         | o    | o    |      |
+| ref.func            | o    | o    |      |
+| drop                | o    | o    |      |
+| select              | o    | o    |      |
 | local.get           | o    | o    | o    |
 | local.set           | o    | o    | o    |
-| local.tee           | o    |      | o    |
-| global.get          | o    |      | o    |
-| global.set          | o    |      | o    |
-| table.get           | o    |      |      |
-| table.set           | o    |      |      |
-| table.size          | o    |      |      |
-| table.grow          | o    |      |      |
-| table.fill          | o    |      |      |
-| table.copy          | o    |      |      |
-| table.init          | o    |      |      |
-| elem.drop           | o    |      |      |
+| local.tee           | o    | o    | o    |
+| global.get          | o    | o    | o    |
+| global.set          | o    | o    | o    |
+| table.get           | o    | o    |      |
+| table.set           | o    | o    |      |
+| table.size          | o    | o    |      |
+| table.grow          | o    | o    |      |
+| table.fill          | o    | o    |      |
+| table.copy          | o    | o    |      |
+| table.init          | o    | o    |      |
+| elem.drop           | o    | o    |      |
 | i32.load            | o    | o    | o    |
 | f32.load            |      |      |      |
-| i32.store           | o    |      | o    |
+| i32.store           | o    | o    | o    |
 | f32.store           |      |      |      |
-| i32.load8_s         | o    |      |      |
-| i32.load8_u         | o    |      |      |
-| i32.load16_s        | o    |      |      |
-| i32.load16_u        | o    |      |      |
+| i32.load8_s         | o    | o    |      |
+| i32.load8_u         | o    | o    |      |
+| i32.load16_s        | o    | o    |      |
+| i32.load16_u        | o    | o    |      |
 | i64.load            |      |      |      |
 | f64.load            |      |      |      |
 | i64.store           |      |      |      |
@@ -205,37 +205,37 @@
 | i64.load16_u        |      |      |      |
 | i64.load32_s        |      |      |      |
 | i64.load32_u        |      |      |      |
-| i32.store8          | o    |      |      |
-| i32.store16         | o    |      |      |
+| i32.store8          | o    | o    |      |
+| i32.store16         | o    | o    |      |
 | i64.store8          |      |      |      |
 | i64.store16         |      |      |      |
 | i64.store32         |      |      |      |
-| memory.size         | o    |      |      |
-| memory.grow         | o    |      |      |
-| memory.fill         | o    |      |      |
-| memory.copy         | o    |      |      |
-| memory.init         | o    |      |      |
-| data.drop           | o    |      |      |
-| i32.extend8_s       | o    |      |      |
-| i32.extend16_s      | o    |      |      |
+| memory.size         | o    | o    |      |
+| memory.grow         | o    | o    |      |
+| memory.fill         | o    | o    |      |
+| memory.copy         | o    | o    |      |
+| memory.init         | o    | o    |      |
+| data.drop           | o    | o    |      |
+| i32.extend8_s       | o    | o    |      |
+| i32.extend16_s      | o    | o    |      |
 | i64.extend8_s       |      |      |      |
 | i64.extend16_s      |      |      |      |
 | i64.extend32_s      |      |      |      |
-| i32.wrap_i64        | o    |      |      |
+| i32.wrap_i64        | o    | o    |      |
 | i64.extend_i32_s    |      |      |      |
 | i64.extend_i32_u    |      |      |      |
-| i32.trunc_f32_s     | o    |      |      |
-| i32.trunc_f32_u     | o    |      |      |
-| i32.trunc_sat_f32_s | o    |      |      |
-| i32.trunc_sat_f32_u | o    |      |      |
+| i32.trunc_f32_s     | o    | o    |      |
+| i32.trunc_f32_u     | o    | o    |      |
+| i32.trunc_sat_f32_s | o    | o    |      |
+| i32.trunc_sat_f32_u | o    | o    |      |
 | i64.trunc_f32_s     |      |      |      |
 | i64.trunc_f32_u     |      |      |      |
 | i64.trunc_sat_f32_s |      |      |      |
 | i64.trunc_sat_f32_u |      |      |      |
-| i32.trunc_f64_s     | o    |      |      |
-| i32.trunc_f64_u     | o    |      |      |
-| i32.trunc_sat_f64_s | o    |      |      |
-| i32.trunc_sat_f64_u | o    |      |      |
+| i32.trunc_f64_s     | o    | o    |      |
+| i32.trunc_f64_u     | o    | o    |      |
+| i32.trunc_sat_f64_s | o    | o    |      |
+| i32.trunc_sat_f64_u | o    | o    |      |
 | i64.trunc_f64_s     |      |      |      |
 | i64.trunc_f64_u     |      |      |      |
 | i64.trunc_sat_f64_s |      |      |      |
@@ -252,7 +252,7 @@
 | f64.reinterpret_i64 |      |      |      |
 | f32.convert_i64_s   |      |      |      |
 | f32.convert_i64_u   |      |      |      |
-| i32.reinterpret_f32 | o    |      |      |
+| i32.reinterpret_f32 | o    | o    |      |
 | f32.reinterpret_i32 |      |      |      |
 | f64.convert_i64_s   |      |      |      |
 | f64.convert_i64_u   |      |      |      |
