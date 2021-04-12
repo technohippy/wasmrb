@@ -51,6 +51,8 @@
 	- いまは今はこうするしかない
 		- const = mod.code_section.codes[0].expressions[6].instructions[0].instructions[10]
 		- const.value = 1
+- [ ] to_json
+	- require "json"; mod.to_hash.to_json でいいかも
 
 # OPコード進捗
 
