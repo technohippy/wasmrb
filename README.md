@@ -6,8 +6,6 @@ WASM Runner in Ruby language
 I'm developing this tool for a learning purpose.
 There must be many bugs and unimplemented specs.
 
-- [gems/wasmrb](https://rubygems.org/gems/wasmrb)
-
 How to Test
 ----
 
@@ -15,8 +13,15 @@ How to Test
 $ ruby test/run-test.rb
 ```
 
+How to Install
+----
+
+```
+$ gem install wasmrb
+```
+
 How to Use
----
+----
 
 ### Load and Inspect
 
