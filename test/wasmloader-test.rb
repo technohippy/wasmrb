@@ -37,6 +37,12 @@ class WASMLoaderTest < Test::Unit::TestCase
     assert_equal 1, inst.exports.return1()
   end
 
+  def test_f64
+    mod = @loader.load "test/data/basic/f64.wasm"
+    inst = mod.instantiate :js => {:mem => [1.5].pack("d").unpack("C*")}
+    assert (1.5+1.64+1.2-inst.exports.addf64(1.64)).abs < 0.000001
+  end
+
   def test_fail
     mod = @loader.load "test/data/js-api-examples/fail.wasm"
     inst = mod.instantiate

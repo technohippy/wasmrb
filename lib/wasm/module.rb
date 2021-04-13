@@ -1170,6 +1170,26 @@ module WebAssembly
     end
   end
 
+  class F64LoadInstruction < Instruction
+    TAG = 0x2b
+
+    attr_accessor :memarg
+
+    def call context
+      memory = context.memories[0] # TODO: all memory instructions implicitly operate on memory index 0.
+      position = context.stack.pop + memarg.offset
+      bytes = memory[position...position+8]
+      context.stack.push bytes.pack("C*").unpack("d")[0]
+    end
+
+    def to_hash
+      {
+        :name => "f64.load",
+        :memarg => @memarg.to_hash
+      }
+    end
+  end
+
   class I32Load8sInstruction < Instruction
     TAG = 0x2c
 
@@ -1362,6 +1382,27 @@ module WebAssembly
     def to_hash
       {
         :name => "i32.const",
+        :value => @value
+      }
+    end
+  end
+
+  class F64ConstInstruction < Instruction
+    TAG = 0x44
+
+    attr_accessor :value
+
+    def initialize value=nil
+      @value = value
+    end
+
+    def call context
+      context.stack.push value
+    end
+
+    def to_hash
+      {
+        :name => "f64.const",
         :value => @value
       }
     end
@@ -1928,6 +1969,22 @@ module WebAssembly
       {
         :name => "i64.store",
         :memarg => @memarg.to_hash
+      }
+    end
+  end
+
+  class F64AddInstruction < Instruction
+    TAG = 0xa0
+
+    def call context
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(lhs+rhs)
+    end
+
+    def to_hash
+      {
+        :name => "i32.add"
       }
     end
   end

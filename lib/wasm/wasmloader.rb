@@ -106,9 +106,13 @@ module WebAssembly
 		alias read_signed_int read_signed_leb128
 
 		def read_f32
+			bytes = read 4
+      bytes.pack("C*").unpack("d")[0]
 		end
 
 		def read_f64
+			bytes = read 8
+      bytes.pack("C*").unpack("d")[0]
 		end
 
 		def read_name
@@ -590,6 +594,7 @@ module WebAssembly
 			"table_size" => ["tableidx"],
 			"table_fill" => ["tableidx"],
 			"i32_load" => {"memarg" => "read_memarg"},
+			"f64_load" => {"memarg" => "read_memarg"},
 			"i32_load8s" => {"memarg" => "read_memarg"},
 			"i32_load8u" => {"memarg" => "read_memarg"},
 			"i32_load16s" => {"memarg" => "read_memarg"},
@@ -604,6 +609,7 @@ module WebAssembly
 			"memory_copy" => [],
 			"memory_fill" => [],
 			"i32_const" => ["value"],
+			"f64_const" => {"value" => proc {|buffer| buffer.read_f64}},
 			"i32_eqz" => [],
 			"i32_eq" => [],
 			"i32_ne" => [],
@@ -641,6 +647,7 @@ module WebAssembly
 
 			"i64_load" => {"memarg" => "read_memarg"},
 			"i64_store" => {"memarg" => "read_memarg"},
+			"f64_add" => [],
 			"f64_sqrt" => [],
 			"f64_convert_i32s" => [],
 		}.each do |name, props|
@@ -654,7 +661,11 @@ module WebAssembly
 					end
 				else
 					props.each do |prop, reader|
-						inst.send "#{prop}=", send(reader)
+						if reader.is_a? String
+							inst.send "#{prop}=", send(reader)
+						else
+							inst.send "#{prop}=", reader.call(@buffer)
+						end
 					end
 				end
 				inst
