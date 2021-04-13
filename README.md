@@ -177,6 +177,12 @@ bytes = serializer.serialize mod
 File.binwrite "add.wasm", bytes.pack("C*")
 ```
 
+##### Shortcut:
+
+```ruby
+WebAssembly::serialize mod, "add.wasm"
+```
+
 Sample Codes
 ----
 
