@@ -1,4 +1,4 @@
-require_relative "./module.rb"
+require_relative "../core/module.rb"
 
 module WebAssembly
 	class WASMBuffer

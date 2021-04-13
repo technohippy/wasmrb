@@ -1,6 +1,6 @@
 require "pp"
 require "test-unit"
-require_relative "../lib/wasm/wasmloader.rb"
+require_relative "../lib/wasm/loader/wasmloader.rb"
 
 class WASMLoaderTest < Test::Unit::TestCase
   def setup
@@ -61,6 +61,21 @@ class WASMLoaderTest < Test::Unit::TestCase
     }
     assert_equal 0, inst.exports.getGlobal()
     global.value = 42
+    assert_equal 42, inst.exports.getGlobal()
+    inst.exports.incGlobal()
+    assert_equal 43, inst.exports.getGlobal()
+  end
+  
+  def test_global2
+    import_object = {
+      :js => {
+        :global => 0
+      }
+    }
+    mod = @loader.load "test/data/js-api-examples/global.wasm"
+    inst = mod.instantiate import_object
+    assert_equal 0, inst.exports.getGlobal()
+    import_object[:js][:global].value = 42
     assert_equal 42, inst.exports.getGlobal()
     inst.exports.incGlobal()
     assert_equal 43, inst.exports.getGlobal()

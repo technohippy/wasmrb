@@ -9,7 +9,7 @@
     (block $outer (loop $outerloop
       (br_if $outer (i32.ge_u (local.get $i) (i32.const 3)))
       (local.set $i (i32.add (local.get $i) (i32.const 1)))
-        (local.set $sum (i32.add (local.get $sum) (i32.const 100)))
+      (local.set $sum (i32.add (local.get $sum) (i32.const 100)))
 
       (local.set $j (i32.const 0))
       (block $inner (loop $innerloop

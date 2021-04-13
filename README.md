@@ -16,7 +16,7 @@ $ ruby test/run-test.rb
 How to Use
 ---
 
-### How to Load and Inspect
+### Load and Inspect
 
 Code:
 
@@ -52,7 +52,7 @@ Output:
          {:name=>"i32.add"}]}]}]}
 ```
 
-### How to Run Exported Function
+### Run Exported Function
 
 Code:
 
@@ -88,7 +88,7 @@ Output:
 13
 ```
 
-### How to Construct Module with Code
+### Construct Module with Code
 
 Code:
 
@@ -154,7 +154,7 @@ Output:
 45
 ```
 
-### How to Serialize into WASM
+### Serialize Module into WASM
 
 ```ruby
 serializer = WebAssembly::WASMSerializer.new

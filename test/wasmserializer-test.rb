@@ -1,6 +1,6 @@
 require "test-unit"
-require_relative "../lib/wasm/wasmloader.rb"
-require_relative "../lib/wasm/wasmserializer.rb"
+require_relative "../lib/wasm/loader/wasmloader.rb"
+require_relative "../lib/wasm/serializer/wasmserializer.rb"
 
 class WASMSerializerTest < Test::Unit::TestCase
   def setup
@@ -20,6 +20,12 @@ class WASMSerializerTest < Test::Unit::TestCase
 
   def assert_bytes expected, actual
     assert_equal bytes_to_string(expected), bytes_to_string(actual)
+  end
+
+  def test_loop
+    mod = @loader.load "test/data/basic/if.wasm"
+    bytes = @serializer.serialize mod
+    assert_bytes @loader.buffer.data, bytes
   end
 
   def test_f64

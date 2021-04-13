@@ -31,6 +31,10 @@ module WebAssembly
 						@context.functions.push ImportedFunction.new(type_section.functypes[funcdesc.index.index], obj)
 					when ImportGlobalDesc
 						globaldesc = i.desc
+						unless obj.is_a? Context::Global
+							obj = Context::Global.new obj
+							@import_object[i.mod.to_sym][i.name.to_sym] = obj
+						end
 						@context.globals.push obj
 					end
 				end
