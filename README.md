@@ -18,15 +18,22 @@ How to Use
 
 ### Load and Inspect
 
-Code:
+#### Code:
 
 ```ruby
 loader = WebAssembly::WASMLoader.new
-mod = loader.load "understanding-text-format/add.wasm"
+mod = loader.load "add.wasm"
 pp mod.to_hash
 ```
 
-Output:
+##### Shortcut:
+
+```ruby
+mod = WebAssembly::load "add.wasm"
+pp mod.to_hash
+```
+
+#### Output:
 
 ```ruby
 {:magic=>[0, 97, 115, 109],
@@ -54,24 +61,33 @@ Output:
 
 ### Run Exported Function
 
-Code:
+#### Code:
 
 ```ruby
+loader = WebAssembly::WASMLoader.new
+mod = loader.load "add.wasm"
 inst = mod.instantiate
 puts inst.exports.add(1, 2)
 ```
 
-Output:
+##### Shortcut:
+
+```ruby
+inst = WebAssembly::instantiate "add.wasm"
+puts inst.exports.add(1, 2)
+```
+
+#### Output:
 
 ```
 3
 ```
 
-Code (with import_object):
+#### Code (with import_object):
 
 ```ruby
 loader = WebAssembly::WASMLoader.new
-mod = loader.load "understanding-text-format/logger.wasm"
+mod = loader.load "logger.wasm"
 
 import_object = {
   :console => {
@@ -82,7 +98,19 @@ inst = mod.instantiate import_object
 inst.exports.logIt()
 ```
 
-Output:
+##### Shortcut:
+
+```ruby
+import_object = {
+  :console => {
+    :log => lambda {|msg| puts msg}
+  }
+}
+inst = WebAssembly::instantiate "logger.wasm", imprt_object
+inst.exports.logIt()
+```
+
+#### Output:
 
 ```
 13
@@ -90,7 +118,7 @@ Output:
 
 ### Construct Module with Code
 
-Code:
+#### Code:
 
 ```ruby
 type_section = WebAssembly::TypeSection.new
@@ -118,13 +146,13 @@ inst = mod.instantiate
 puts inst.exports.add(1, 2)
 ```
 
-Output:
+#### Output:
 
 ```
 3
 ```
 
-#### DSL (experimental)
+##### DSL (experimental)
 
 [simple-dsl.rb](https://github.com/technohippy/wasmrb/blob/master/misc/simple-dsl.rb)
 
