@@ -72,7 +72,7 @@
 | i32.const           | o    | o    | o    |
 | f32.const           |      |      |      |
 | i64.const           |      |      |      |
-| f64.const           | o    |      | o    |
+| f64.const           | o    | o    | o    |
 | i32.clz             | o    | o    |      |
 | i32.ctz             | o    | o    |      |
 | i32.popcnt          | o    | o    |      |
@@ -130,7 +130,7 @@
 | f32.min             |      |      |      |
 | f32.max             |      |      |      |
 | f32.copysign        |      |      |      |
-| f64.add             | o    |      | o    |
+| f64.add             | o    | o    | o    |
 | f64.sub             |      |      |      |
 | f64.mul             |      |      |      |
 | f64.div             |      |      |      |
@@ -198,7 +198,7 @@
 | i32.load16_s        | o    | o    |      |
 | i32.load16_u        | o    | o    |      |
 | i64.load            |      |      |      |
-| f64.load            | o    |      | o    |
+| f64.load            | o    | o    | o    |
 | i64.store           |      |      |      |
 | f64.store           |      |      |      |
 | i64.load8_s         |      |      |      |

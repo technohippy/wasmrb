@@ -22,6 +22,12 @@ class WASMSerializerTest < Test::Unit::TestCase
     assert_equal bytes_to_string(expected), bytes_to_string(actual)
   end
 
+  def test_f64
+    mod = @loader.load "test/data/basic/f64.wasm"
+    bytes = @serializer.serialize mod
+    assert_bytes @loader.buffer.data, bytes
+  end
+
   def test_add
     mod = @loader.load "test/data/understanding-text-format/add.wasm"
     bytes = @serializer.serialize mod
