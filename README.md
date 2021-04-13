@@ -275,3 +275,4 @@ Refs.
 - [WebAssembly Specification](https://webassembly.github.io/spec/)
 - [WebAssembly Opcodes](https://pengowray.github.io/wasm-ops/)
 - [WebAssembly Examples (MDN)](https://github.com/mdn/webassembly-examples)
+- [webassemblyの薄い本](https://github.com/ukyo/wasm-usui-book)
