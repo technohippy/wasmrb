@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = "wasm"
+  s.name        = "wasmrb"
   s.version     = "0.0.1"
   s.summary     = "WASM Runner"
   s.description = "Read and Run WebAssembly"
