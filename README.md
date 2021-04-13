@@ -116,6 +116,20 @@ inst.exports.logIt()
 13
 ```
 
+### Serialize Module into WASM
+
+```ruby
+serializer = WebAssembly::WASMSerializer.new
+bytes = serializer.serialize mod
+File.binwrite "add.wasm", bytes.pack("C*")
+```
+
+##### Shortcut:
+
+```ruby
+WebAssembly::serialize mod, "add.wasm"
+```
+
 ### Construct Module with Code
 
 #### Code:
@@ -167,20 +181,6 @@ puts inst.exports.add(1, 2)
 
 ```
 3
-```
-
-### Serialize Module into WASM
-
-```ruby
-serializer = WebAssembly::WASMSerializer.new
-bytes = serializer.serialize mod
-File.binwrite "add.wasm", bytes.pack("C*")
-```
-
-##### Shortcut:
-
-```ruby
-WebAssembly::serialize mod, "add.wasm"
 ```
 
 Sample Codes
