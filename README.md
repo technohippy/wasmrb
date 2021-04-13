@@ -146,40 +146,27 @@ inst = mod.instantiate
 puts inst.exports.add(1, 2)
 ```
 
-#### Output:
-
-```
-3
-```
-
 ##### DSL (experimental)
 
 [simple-dsl.rb](https://github.com/technohippy/wasmrb/blob/master/misc/simple-dsl.rb)
-
-Code:
 
 ```ruby
 wasm =  mod {
           func :f1, [:i32, :i32] => [:i32] {
             i32.add arg(0), arg(1)
-            i32.add call(:f2)
-          }
-          
-          func :f2, [] => [:i32] {
-            i32.const 42
           }
 
-          export "add42", :f1
+          export "add", :f1
         }
 
 inst = wasm.instantiate
-puts inst.exports.add42(1, 2) # 1+2+42 = 45
+puts inst.exports.add(1, 2)
 ```
 
-Output:
+#### Output:
 
 ```
-45
+3
 ```
 
 ### Serialize Module into WASM
