@@ -6,18 +6,18 @@ WASM Runner in Ruby language
 I'm developing this tool for a learning purpose.
 There must be many bugs and unimplemented specs.
 
-How to Test
-----
-
-```
-$ ruby test/run-test.rb
-```
-
 How to Install
 ----
 
 ```
 $ gem install wasmrb
+```
+
+How to Test
+----
+
+```
+$ ruby test/run-test.rb
 ```
 
 How to Use
