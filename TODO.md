@@ -34,11 +34,12 @@
 - [x] ファイル分割
 - [ ] attr_accessorを使っている部分を一部attr_readerに
 - [ ] expr, expression, expressionsが混在してる
+- [ ] context.stackはバイトの配列で持たないと実行時に型を指定できない
 
 ## リリース
 
 - [ ] 諸々の機能をコマンドとして呼べるように
-- [ ] gem化
+- [x] gem化
 
 ## その他
 
@@ -174,8 +175,8 @@
 | ref.null            | o    | o    |      |
 | ref.is_null         | o    | o    |      |
 | ref.func            | o    | o    |      |
-| drop                | o    | o    |      |
-| select              | o    | o    |      |
+| drop                | o    | o    | o    |
+| select              | o    | o    | o    |
 | local.get           | o    | o    | o    |
 | local.set           | o    | o    | o    |
 | local.tee           | o    | o    | o    |

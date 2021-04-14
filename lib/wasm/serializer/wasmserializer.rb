@@ -322,7 +322,7 @@ module WebAssembly
 			elsif REF_TYPES.has_key? blocktype
 				bytes.push REF_TYPES[blocktype]
 			else
-				serialize_signed_num bytes, blocktype
+				serialize_sint bytes, blocktype
 			end
 		end
 

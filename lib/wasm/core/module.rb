@@ -884,6 +884,10 @@ module WebAssembly
 
     attr_accessor :reftype
 
+    def call context
+      raise StandardError.new("not yet implemented")
+    end
+
     def to_hash
       {
         :name => "ref.null",
@@ -894,6 +898,10 @@ module WebAssembly
 
   class RefIsNullInstruction < Instruction
     TAG = 0xd1
+
+    def call context
+      raise StandardError.new("not yet implemented")
+    end
 
     def to_hash
       {
@@ -907,6 +915,10 @@ module WebAssembly
 
     attr_accessor :funcidx
 
+    def call context
+      raise StandardError.new("not yet implemented")
+    end
+
     def to_hash
       {
         :name => "ref.func",
@@ -918,6 +930,11 @@ module WebAssembly
   class DropInstruction < Instruction
     TAG = 0x1a
 
+    def call context
+      # The drop instruction simply throws away a single operand
+      context.stack.pop
+    end
+
     def to_hash
       {
         :name => "drop",
@@ -927,6 +944,13 @@ module WebAssembly
 
   class SelectInstruction < Instruction
     TAG = 0x1b
+
+    def call context
+      o1 = context.stack.pop
+      o2 = context.stack.pop
+      c = context.stack.pop
+      context.stach.push(if c == 0 then o1 else o2 end)
+    end
 
     def to_hash
       {
@@ -939,6 +963,14 @@ module WebAssembly
     TAG = 0x1c
     
     attr_accessor :valtypes
+
+    def call context
+      # ignore valtypes
+      o1 = context.stack.pop
+      o2 = context.stack.pop
+      c = context.stack.pop
+      context.stach.push(if c == 0 then o1 else o2 end)
+    end
 
     def to_hash
       {

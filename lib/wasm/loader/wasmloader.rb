@@ -532,10 +532,6 @@ module WebAssembly
 			return @buffer.read_byte if @buffer.peek == 0x40
 			valtype = peek_valtype
 			return read_valtype if valtype
-			read_s33
-		end
-
-		def read_s33
 			@buffer.read_sint
 		end
 
