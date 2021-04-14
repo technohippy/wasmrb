@@ -615,6 +615,8 @@ module WebAssembly
 			"memory_fill" => [],
 			#"i32_const" => ["value"],
 			"i32_const" => {"value" => proc {|buf| buf.read_sint}},
+			"i64_const" => {"value" => proc {|buf| buf.read_sint}},
+			"f32_const" => {"value" => proc {|buf| buf.read_f32}},
 			"f64_const" => {"value" => proc {|buf| buf.read_f64}},
 			"i32_eqz" => [],
 			"i32_eq" => [],

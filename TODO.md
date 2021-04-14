@@ -72,8 +72,8 @@
 | call                | o    | o    | o    |
 | call_indirect       | o    | o    | o    |
 | i32.const           | o    | o    | o    |
-| f32.const           |      |      |      |
-| i64.const           |      |      |      |
+| f32.const           | o    | o    | o    |
+| i64.const           | o    | o    | o    |
 | f64.const           | o    | o    | o    |
 | i32.clz             | o    | o    | o    |
 | i32.ctz             | o    | o    | o    |

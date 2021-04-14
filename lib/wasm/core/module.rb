@@ -1330,6 +1330,11 @@ module WebAssembly
 
     attr_accessor :placeholder
 
+    def call context
+      memory = context.memories[0] # TODO: all memory instructions implicitly operate on memory index 0.
+      context.stack.push memory.size
+    end
+
     def to_hash
       {
         :name => "memory.size",
@@ -1341,6 +1346,10 @@ module WebAssembly
     TAG = 0x40
 
     attr_accessor :placeholder
+
+    def call context
+      # nop
+    end
 
     def to_hash
       {
@@ -1355,6 +1364,10 @@ module WebAssembly
 
     attr_accessor :dataidx, :placeholer
 
+    def call context
+      # nop
+    end
+
     def to_hash
       {
         :name => "memory.init",
@@ -1368,6 +1381,11 @@ module WebAssembly
     SUBTAG = 9
 
     attr_accessor :dataidx
+
+    def call context
+      memory = context.memories[0]
+      memory[@dataidx] = nil
+    end
 
     def to_hash
       {
@@ -1419,6 +1437,27 @@ module WebAssembly
     def to_hash
       {
         :name => "i32.const",
+        :value => @value
+      }
+    end
+  end
+
+  class F32ConstInstruction < Instruction
+    TAG = 0x43
+
+    attr_accessor :value
+
+    def initialize value=nil
+      @value = value
+    end
+
+    def call context
+      context.stack.push value
+    end
+
+    def to_hash
+      {
+        :name => "f32.const",
         :value => @value
       }
     end
@@ -2043,6 +2082,27 @@ module WebAssembly
       {
         :name => "i64.store",
         :memarg => @memarg.to_hash
+      }
+    end
+  end
+
+  class I64ConstInstruction < Instruction
+    TAG = 0x42
+
+    attr_accessor :value
+
+    def initialize value=nil
+      @value = value
+    end
+
+    def call context
+      context.stack.push value
+    end
+
+    def to_hash
+      {
+        :name => "i64.const",
+        :value => @value
       }
     end
   end

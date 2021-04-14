@@ -440,7 +440,9 @@ module WebAssembly
 
 			"i64_load" => {"memarg" => "serialize_memarg"},
 			"i64_store" => {"memarg" => "serialize_memarg"},
+			"i64_const" => {"value" => "serialize_sint"},
 
+			"f32_const" => {"value" => "serialize_f32"},
 			"f64_const" => {"value" => "serialize_f64"},
 			"f64_load" => {"memarg" => "serialize_memarg"},
 			"f64_add" => [],
@@ -532,6 +534,10 @@ module WebAssembly
 			serialize_vec bytes, chars do |bt, c|
 				bt.push c
 			end
+		end
+
+		def serialize_f32 bytes, num
+			bytes.push *([num].pack("f").unpack("C*"))
 		end
 
 		def serialize_f64 bytes, num
