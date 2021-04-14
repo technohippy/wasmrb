@@ -6,3 +6,4 @@ module WebAssembly
       raise StandardError.new("not yet")
     end
   end
+end

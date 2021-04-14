@@ -43,6 +43,12 @@ class WASMLoaderTest < Test::Unit::TestCase
     assert (1.5+1.64+1.2-inst.exports.addf64(1.64)).abs < 0.000001
   end
 
+  def test_signed_int
+    mod = @loader.load "test/data/basic/signed_int.wasm"
+    inst = mod.instantiate
+    assert_equal -273, inst.exports.minus273()
+  end
+
   def test_fail
     mod = @loader.load "test/data/js-api-examples/fail.wasm"
     inst = mod.instantiate

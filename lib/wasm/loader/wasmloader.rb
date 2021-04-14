@@ -80,30 +80,39 @@ module WebAssembly
 				last = part < 128
 				part = (part & 0b01111111) << fig
 				num = num | part
-				fig += 7
 				break if last
+				fig += 7
 			end
 			num
 		end
 
-		alias read_int read_leb128
+		alias read_uint read_leb128
 
-		# https://en.wikipedia.org/wiki/LEB128#Signed_LEB128
 		def read_signed_leb128
 			num = 0
+			rnum = 0 # 負数を求めるために反転した数値も合わせて作成
 			fig = 0
 			loop do
 				part = read_byte
-				last = (part & 0b10000000) == 0
+				rpart = part ^ 0b11111111
+				last = part < 128
 				part = (part & 0b01111111) << fig
 				num = num | part
-				fig += 7
+				rpart = (rpart & 0b01111111) << fig
+				rnum = rnum | rpart
+
 				break if last
+				fig += 7
+			end
+			byte_count = fig/7+1
+			minus = (num & (1 << (byte_count * 7)-1)) != 0
+			if minus
+				num = -(rnum + 1)
 			end
 			num
 		end
 
-		alias read_signed_int read_signed_leb128
+		alias read_sint read_signed_leb128
 
 		def read_f32
 			bytes = read 4
@@ -124,7 +133,7 @@ module WebAssembly
 
 		def read_vec &readfunc
 			vec = []
-			read_int.times do
+			read_uint.times do
 				vec.push readfunc.call
 			end
 			vec
@@ -134,10 +143,10 @@ module WebAssembly
 			limit = Limit.new
 			type = read_byte
 			if type == 0
-				limit.min = read_int
+				limit.min = read_uint
 			elsif type == 1
-				limit.min = read_int
-				limit.max = read_int
+				limit.min = read_uint
+				limit.max = read_uint
 			else
 				raise StandardError.new("invalid limit type: #{type}")
 			end
@@ -225,7 +234,7 @@ module WebAssembly
 
 		def read_section_header
 			secid = @buffer.read_byte
-			length = @buffer.read_int
+			length = @buffer.read_uint
 			[secid, length]
 		end
 
@@ -239,7 +248,7 @@ module WebAssembly
 		def read_type_section
 			section = TypeSection.new
 			types = []
-			type_num = @buffer.read_int
+			type_num = @buffer.read_uint
 			type_num.times do
 				section.add_functype read_functype
 			end
@@ -296,14 +305,14 @@ module WebAssembly
 		def read_type_import
 			desc = ImportTypeDesc.new
 			index = TypeIndex.new
-			index.index = @buffer.read_int
+			index.index = @buffer.read_uint
 			desc.index = index
 			desc
 		end
 
 		def read_table_import
 			desc = ImportTableDesc.new
-			desc.reftype = REF_TYPES[@buffer.read_int]
+			desc.reftype = REF_TYPES[@buffer.read_uint]
 			desc.limits = @buffer.read_limits
 			desc
 		end
@@ -323,7 +332,7 @@ module WebAssembly
 		def read_globaltype
 			globaltype = GlobalType.new
 			globaltype.valtype = read_valtype
-			type = @buffer.read_int
+			type = @buffer.read_uint
 			globaltype.mut =
 				case type
 				when 0
@@ -339,7 +348,7 @@ module WebAssembly
 		def read_function_section
 			section = FunctionSection.new
 			@buffer.read_vec do
-				section.add_type_index @buffer.read_int
+				section.add_type_index @buffer.read_uint
 			end
 			section
 		end
@@ -354,7 +363,7 @@ module WebAssembly
 
 		def read_tabletype
 			tabletype = TableType.new
-			tabletype.reftype = REF_TYPES[@buffer.read_int]
+			tabletype.reftype = REF_TYPES[@buffer.read_uint]
 			tabletype.limits = @buffer.read_limits
 			tabletype
 		end
@@ -393,7 +402,7 @@ module WebAssembly
 		def read_export
 			export = Export.new
 			export.name = @buffer.read_name
-			type = @buffer.read_int
+			type = @buffer.read_uint
 			export.desc = 
 				case type
 				when 0x00
@@ -407,7 +416,7 @@ module WebAssembly
 				else
 					raise StandardError.new("invalid export desc: #{type}")
 				end
-			export.desc.index = @buffer.read_int
+			export.desc.index = @buffer.read_uint
 			export
 		end
 
@@ -415,7 +424,7 @@ module WebAssembly
 			section = StartSection.new
 			@buffer.read_vec do
 				funcidx = FuncIndex.new
-				funcidx.index = @buffer.read_int
+				funcidx.index = @buffer.read_uint
 				section.add_start funcidx
 			end
 			section
@@ -438,7 +447,7 @@ module WebAssembly
 			when 0b000
 				element.expression = read_expressions
 				@buffer.read_vec do
-					element.add_funcidx @buffer.read_int
+					element.add_funcidx @buffer.read_uint
 				end
 			when 0b001
 				raise StandardError.new("not yet implemented: #{tag}")
@@ -470,7 +479,7 @@ module WebAssembly
 
 		def read_code
 			code = Code.new
-			size = @buffer.read_int
+			size = @buffer.read_uint
 			@buffer.viewport size do
 				@buffer.read_vec do
 					code.add_locals read_locals
@@ -482,7 +491,7 @@ module WebAssembly
 
 		def read_locals
 			locals = Locals.new
-			locals.count = @buffer.read_int
+			locals.count = @buffer.read_uint
 			locals.valtype = read_valtype
 			locals
 		end
@@ -527,7 +536,7 @@ module WebAssembly
 		end
 
 		def read_s33
-			@buffer.read_signed_int
+			@buffer.read_sint
 		end
 
 		def read_inst_loop
@@ -561,9 +570,9 @@ module WebAssembly
 		def read_inst_br_table
 			inst = BrTableInstruction.new
 			@buffer.read_vec do
-				inst.add_labelidx @buffer.read_int
+				inst.add_labelidx @buffer.read_uint
 			end
-			inst.labelidx = @buffer.read_int
+			inst.labelidx = @buffer.read_uint
 			inst
 		end
 
@@ -608,8 +617,9 @@ module WebAssembly
 			"data_drop" => ["dataidx"],
 			"memory_copy" => [],
 			"memory_fill" => [],
-			"i32_const" => ["value"],
-			"f64_const" => {"value" => proc {|buffer| buffer.read_f64}},
+			#"i32_const" => ["value"],
+			"i32_const" => {"value" => proc {|buf| buf.read_sint}},
+			"f64_const" => {"value" => proc {|buf| buf.read_f64}},
 			"i32_eqz" => [],
 			"i32_eq" => [],
 			"i32_ne" => [],
@@ -657,7 +667,7 @@ module WebAssembly
 				inst = WebAssembly.const_get(classname).new
 				if props.instance_of? Array
 					props.each do |prop|
-						inst.send "#{prop}=", @buffer.read_int
+						inst.send "#{prop}=", @buffer.read_uint
 					end
 				else
 					props.each do |prop, reader|
@@ -674,8 +684,8 @@ module WebAssembly
 
 		def read_memarg
 			memarg = Memarg.new
-			memarg.align = @buffer.read_int
-			memarg.offset = @buffer.read_int
+			memarg.align = @buffer.read_uint
+			memarg.offset = @buffer.read_uint
 			memarg
 		end
 
@@ -701,7 +711,7 @@ module WebAssembly
 					data.add_byte @buffer.read_byte
 				end
 			when 0x02
-				data.memidx = read_int
+				data.memidx = read_uint
 				data.expressions = read_expressions
 				@buffer.read_vec do
 					data.add_byte @buffer.read_byte
@@ -714,7 +724,7 @@ module WebAssembly
 
 		def read_datacount_section data 
 			section = DataCountSection.new
-			section.count = @buffer.read_int
+			section.count = @buffer.read_uint
 			section
 		end
 	end
