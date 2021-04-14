@@ -632,6 +632,11 @@ module WebAssembly
       kls.name.split("::").last.sub(/Instruction$/, "").sub(/^(.)/){$1.downcase}.gsub(/([A-Z])/){ "_#{$1.downcase}" }
     end
 
+    def u32 num
+      return num if 0 <= num
+      -(num ^ 0b1111_1111_1111_1111_1111_1111_1111_1111) - 1
+    end
+
     def call context
 			raise StandardError.new("not yet implemented: #{self.class.name}")
     end
@@ -1746,8 +1751,8 @@ module WebAssembly
 
     def call context
       # TODO: unsigned
-      rhs = context.stack.pop
-      lhs = context.stack.pop
+      rhs = u32(context.stack.pop)
+      lhs = u32(context.stack.pop)
       context.stack.push(lhs/rhs)
     end
 
@@ -1761,6 +1766,13 @@ module WebAssembly
   class I32RemsInstruction < Instruction
     TAG = 0x6f
 
+    def call context
+      # TODO: signed
+      rhs = context.stack.pop
+      lhs = context.stack.pop
+      context.stack.push(lhs%rhs)
+    end
+
     def to_hash
       {
         :name => "i32.rem_s"
@@ -1770,6 +1782,13 @@ module WebAssembly
 
   class I32RemuInstruction < Instruction
     TAG = 0x70
+
+    def call context
+      # TODO: unsigned
+      rhs = u32(context.stack.pop)
+      lhs = u32(context.stack.pop)
+      context.stack.push(lhs%rhs)
+    end
 
     def to_hash
       {

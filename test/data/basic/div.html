@@ -1,0 +1,24 @@
+<!doctype html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>WASM f32 example</title>
+  </head>
+
+  <body>
+    <script>
+      const mem = new WebAssembly.Memory({initial:1})
+      const f64 = new Float64Array(mem.buffer)
+      f64[0] = 1.5
+
+      WebAssembly.instantiateStreaming(fetch('div.wasm'), {js: {mem:mem}}).then(function(obj) {
+        console.log(obj.instance.exports.div_s(-2, 3));
+        console.log(obj.instance.exports.div_u(-2, 3));
+      });
+    </script>
+  </body>
+
+</html>
+

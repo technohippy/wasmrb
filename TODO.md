@@ -83,8 +83,8 @@
 | i32.mul             | o    | o    | o    |
 | i32.div_s           | o    | o    | o    |
 | i32.div_u           | o    | o    | o    |
-| i32.rem_s           | o    | o    |      |
-| i32.rem_u           | o    | o    |      |
+| i32.rem_s           | o    | o    | o    |
+| i32.rem_u           | o    | o    | o    |
 | i32.and             | o    | o    | o    |
 | i32.or              | o    | o    | o    |
 | i32.xor             | o    | o    | o    |

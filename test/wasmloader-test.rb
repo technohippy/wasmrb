@@ -69,6 +69,13 @@ class WASMLoaderTest < Test::Unit::TestCase
     assert_equal 1, inst.exports.i32popcnt(512)
   end
 
+  def test_div
+    mod = @loader.load "test/data/basic/div.wasm"
+    inst = mod.instantiate
+    assert_equal -1, inst.exports.div_s(-2, 3)
+    assert_equal 1431655764, inst.exports.div_u(-2, 3)
+  end
+
   def test_fail
     mod = @loader.load "test/data/js-api-examples/fail.wasm"
     inst = mod.instantiate
