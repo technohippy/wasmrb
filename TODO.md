@@ -34,7 +34,8 @@
 - [x] ファイル分割
 - [ ] attr_accessorを使っている部分を一部attr_readerに
 - [ ] expr, expression, expressionsが混在してる
-- [ ] context.stackはバイトの配列で持たないと実行時に型を指定できない
+- [ ] Bufferクラスのdataをnumber[]からStringに変更
+- [ ] context.stackはバイトの配列（String）で管理しないと実行時に型を指定できない
 
 ## リリース
 
@@ -74,9 +75,9 @@
 | f32.const           |      |      |      |
 | i64.const           |      |      |      |
 | f64.const           | o    | o    | o    |
-| i32.clz             | o    | o    |      |
-| i32.ctz             | o    | o    |      |
-| i32.popcnt          | o    | o    |      |
+| i32.clz             | o    | o    | o    |
+| i32.ctz             | o    | o    | o    |
+| i32.popcnt          | o    | o    | o    |
 | i32.add             | o    | o    | o    |
 | i32.sub             | o    | o    | o    |
 | i32.mul             | o    | o    | o    |

@@ -49,6 +49,26 @@ class WASMLoaderTest < Test::Unit::TestCase
     assert_equal -273, inst.exports.minus273()
   end
 
+  def test_i32clz
+    mod = @loader.load "test/data/basic/i32clz.wasm"
+    inst = mod.instantiate
+    assert_equal 32, inst.exports.i32clz(0)
+    assert_equal 31, inst.exports.i32clz(1)
+    assert_equal 30, inst.exports.i32clz(2)
+    assert_equal 22, inst.exports.i32clz(512)
+  end
+
+  def test_i32popcnt
+    mod = @loader.load "test/data/basic/i32popcnt.wasm"
+    inst = mod.instantiate
+    assert_equal 0, inst.exports.i32popcnt(0)
+    assert_equal 1, inst.exports.i32popcnt(1)
+    assert_equal 1, inst.exports.i32popcnt(2)
+    assert_equal 2, inst.exports.i32popcnt(3)
+    assert_equal 9, inst.exports.i32popcnt(511)
+    assert_equal 1, inst.exports.i32popcnt(512)
+  end
+
   def test_fail
     mod = @loader.load "test/data/js-api-examples/fail.wasm"
     inst = mod.instantiate

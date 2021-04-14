@@ -1623,8 +1623,15 @@ module WebAssembly
     end
   end
 
+  # Return the count of leading zero bits in i;
+  # all bits are considered leading zeros if i is 0.
   class I32ClzInstruction < Instruction
     TAG = 0x67
+
+    def call context
+      i32 = context.stack.pop
+      context.stack.push [i32].pack("l*").unpack("b*")[0].match(/0*$/)[0].size
+    end
 
     def to_hash
       {
@@ -1633,8 +1640,15 @@ module WebAssembly
     end
   end
 
+  # Return the count of trailing zero bits in i;
+  # all bits are considered trailing zeros if i is 0.
   class I32CtzInstruction < Instruction
     TAG = 0x68
+
+    def call context
+      i32 = context.stack.pop
+      context.stack.push [i32].pack("l*").unpack("b*")[0].match(/^0*/)[0].size
+    end
 
     def to_hash
       {
@@ -1643,8 +1657,17 @@ module WebAssembly
     end
   end
 
+  # Return the count of non-zero bits in i.
   class I32PopcntInstruction < Instruction
     TAG = 0x69
+
+    def call context
+      i32 = context.stack.pop
+      cnt = [i32].pack("l*").unpack("b*")[0].split("").inject(0) do |s, b|
+        if b == "0" then s else s + 1 end
+      end
+      context.stack.push cnt
+    end
 
     def to_hash
       {
